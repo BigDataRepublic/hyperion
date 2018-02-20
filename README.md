@@ -1,6 +1,7 @@
 Hyperion
 ========
 [_God of Watchfulness, Wisdom and the Light_](https://en.wikipedia.org/wiki/Hyperion_%28mythology%29)
+
 Hyperion is our brand-new GPU-powered server that we use for our deep learning experiments.
 
 Hardware
