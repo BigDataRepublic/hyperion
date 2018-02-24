@@ -44,7 +44,4 @@ In short, before you can start provisioning, you need someone to give you the fo
 1. The `admin` private key
 1. The `admin` private key passphrase
 
-Before being able to kick-off the provisioning scripts, the following is assumed:
-
-- the user `admin` is added to the `wheel` group and has an SSH key added to its `authorized_keys` file
-- `admin    ALL=(ALL)	NOPASSWD: ALL` is added to the `/etc/sudoers` file to make sure Ansible does not prompt for a password
+Before being able to kick-off the provisioning scripts, it is assumed you have done everything mentioned in Preprocessing.md.
