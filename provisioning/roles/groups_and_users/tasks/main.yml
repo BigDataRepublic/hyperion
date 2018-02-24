@@ -1,0 +1,12 @@
+---
+- name: Create groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items: " {{ groups }}"
+
+- name: Create and setup each user
+  include_tasks: user.yml
+  with_items: "{{ users }}"
+  loop_control:
+    loop_var: user

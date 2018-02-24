@@ -26,3 +26,25 @@ In development, probably a combination of:
 - (Slurm)
 
 This repository will in time contain all deployment scripts, configuration files and documentation for using the box.
+
+Provisioning
+--------
+
+We provision our machines using Ansible.
+To start a full provisioning of Hyperion, run the following command:
+
+`ansible-playbook -i inventory --ask-vault-pass provision_from_scratch.yml`
+
+This will ask you for an Ansible Vault password, which is shared offline between administrators.
+Ansible provisioning should always be done as the `admin` user with public key authentication.
+The private key and its associated passphrase are also shared offline.
+In short, before you can start provisioning, you need someone to give you the following:
+
+1. The Ansible Vault password
+1. The `admin` private key
+1. The `admin` private key passphrase
+
+Before being able to kick-off the provisioning scripts, the following is assumed:
+
+- the user `admin` is added to the `wheel` group and has an SSH key added to its `authorized_keys` file
+- `admin    ALL=(ALL)	NOPASSWD: ALL` is added to the `/etc/sudoers` file to make sure Ansible does not prompt for a password

@@ -1,0 +1,6 @@
+---
+- hosts: gpu
+  remote_user: admin
+  become: yes
+  roles:
+    - groups_and_users

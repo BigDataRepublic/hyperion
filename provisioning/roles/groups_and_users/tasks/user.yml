@@ -1,0 +1,29 @@
+- name: Create users
+  user:
+    name: "{{ user.name }}"
+    comment: "{{ user.comment }}"
+    groups: "{{ user.groups }}"
+    password: "{{ user.password }}"
+    generate_ssh_key: yes
+    ssh_key_type: ed25519
+    update_password: on_create
+    state: present
+
+- name: Grab user's public key
+  slurp:
+    src: "/home/{{ user.name }}/.ssh/id_ed25519.pub"
+  register: user_key
+
+- name: Add user's SSH key to authorized_keys
+  authorized_key:
+    user: "{{ user.name }}"
+    state: present
+    key: "{{ user_key['content'] | b64decode }}"
+
+- name: Set permissions for SSH folder and files correctly
+  file:
+    path: "/home/{{ user.name }}/.ssh"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
+    recurse: yes
