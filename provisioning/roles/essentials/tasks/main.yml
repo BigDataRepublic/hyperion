@@ -1,0 +1,7 @@
+- name: Install essential packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - nano
+    - pciutils

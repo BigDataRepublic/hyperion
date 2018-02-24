@@ -1,0 +1,36 @@
+- name: Install devel packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "@Development Tools"
+    - kernel-devel
+    - kernel-headers
+    - dkms
+
+- name: Blacklist nouveau
+  blockinfile:
+    dest: /etc/modprobe.d/blacklist.conf
+    create: yes
+    block: |
+      blacklist nouveau
+      blacklist lbm-nouveau
+      options nouveau modeset=0
+      alias nouveau off
+      alias lbm-nouveau off
+  notify: Recreate initramfs and reboot
+
+- meta: flush_handlers
+
+- name: Download NVIDIA driver
+  get_url:
+    url: "http://us.download.nvidia.com/XFree86/Linux-x86_64/{{ nvidia_driver_version }}/NVIDIA-Linux-x86_64-{{ nvidia_driver_version }}.run"
+    dest: /tmp/nvidia-driver.run
+
+- name: Install NVIDIA driver
+  command: sh /tmp/nvidia-driver.run --silent
+
+- name: Remove installation file
+  file:
+    path: /tmp/nvidia-driver.run
+    state: absent

@@ -1,0 +1,32 @@
+- name: Gather uname -r
+  command: uname -r
+  register: unamer
+
+- name: Backup initramfs
+  copy:
+    src: "/boot/initramfs-{{ unamer.stdout }}.img"
+    dest: "/boot/initramfs-{{ unamer.stdout }}.img.bak"
+    remote_src: yes
+
+- name: Remove existing initramfs
+  file:
+    path: "/boot/initramfs-{{ unamer.stdout }}.img"
+    state: absent
+
+- name: Rebuild initramfs with disabled nouveau drivers
+  command: "dracut /boot/initramfs-{{ unamer.stdout }}.img {{ unamer.stdout }}"
+
+- name: Reboot
+  shell: sleep 5 && shutdown -r now
+  async: 1
+  poll: 0
+  ignore_errors: true
+
+- name: Wait for restart
+  local_action:
+    module: wait_for
+      host="{{ ansible_host }}"
+      port="{{ ansible_port }}"
+      state=started
+      delay=15
+  become: false

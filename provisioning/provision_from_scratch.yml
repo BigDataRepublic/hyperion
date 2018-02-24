@@ -5,5 +5,7 @@
   roles:
     - repositories
     - update
+    - essentials
     - security
     - groups_and_users
+    - nvidia-drivers
