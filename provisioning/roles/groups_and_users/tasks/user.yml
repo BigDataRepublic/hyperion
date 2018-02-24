@@ -1,4 +1,4 @@
-- name: Create users
+- name: Create user {{ user.name }}
   user:
     name: "{{ user.name }}"
     comment: "{{ user.comment }}"

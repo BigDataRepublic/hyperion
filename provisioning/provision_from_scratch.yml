@@ -3,4 +3,7 @@
   remote_user: admin
   become: yes
   roles:
+    - repositories
+    - update
+    - security
     - groups_and_users

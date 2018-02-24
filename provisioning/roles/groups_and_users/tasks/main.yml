@@ -3,10 +3,10 @@
   group:
     name: "{{ item }}"
     state: present
-  with_items: " {{ groups }}"
+  with_items: " {{ linux_groups }}"
 
 - name: Create and setup each user
   include_tasks: user.yml
-  with_items: "{{ users }}"
+  with_items: "{{ linux_users }}"
   loop_control:
     loop_var: user
