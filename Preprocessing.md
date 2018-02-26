@@ -1,10 +1,7 @@
 Installing the OS
 =====
 
-We use a minimal CentOS booted from a Live USB stick. The settings that are used are the following:
-
-- Auto partitioning, with the root partition (/) set to 25GiB and the rest of the disk set as /home.
-- Admin user should be named `admin`
+We use a minimal CentOS booted from a Live USB stick. You can kickstart the installation by copying `anaconda-ks.cfg` to the flash drive containing the CentOS installation image as `/ks.cfg` (i.e. in the root level, named `ks.cfg`).
 
 Admin user setup
 =====
