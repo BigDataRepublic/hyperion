@@ -1,6 +1,5 @@
 ---
 - hosts: gpu
-  remote_user: admin
   become: yes
   roles:
     - repositories
