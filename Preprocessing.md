@@ -5,8 +5,10 @@ We use a minimal CentOS booted from a Live USB stick. You can kickstart the inst
 
 Admin user setup
 =====
-- add an SSH key for `admin` and add it to its `authorized_keys` file
-- add `admin    ALL=(ALL)	NOPASSWD: ALL` to the `/etc/sudoers` file to make sure Ansible does not prompt for a password
+- Add an SSH key for `admin` and add it to its `authorized_keys` file. This is only for initial provisioning. As soon as your personal user account is created that account should be used.
+- Add `administrators    ALL=(ALL)	NOPASSWD: ALL` to the `/etc/sudoers` file to make sure Ansible does not prompt for a password for admin users
+
+The admin user is only for physical access to the machine and for the initial provisioning.
 
 Mounting the hard drives
 =====
