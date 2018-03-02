@@ -44,7 +44,7 @@ Provisioning
 We provision our machines using Ansible.
 To start a full provisioning of Hyperion, run the following command:
 
-`ansible-playbook -i inventory --ask-vault-pass provision_from_scratch.yml`
+`ansible-playbook -i inventory --ask-vault-pass -u <USER_NAME> provision_from_scratch.yml`
 
 This will ask you for an Ansible Vault password, which is shared offline between administrators.
 Ansible provisioning should always be done as the `admin` user with public key authentication.
