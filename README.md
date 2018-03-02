@@ -52,7 +52,7 @@ The private key and its associated passphrase are also shared offline.
 In short, before you can start provisioning, you need someone to give you the following:
 
 1. The Ansible Vault password
-1. The `admin` private key
-1. The `admin` private key passphrase
+1. The `admin` private key, OR, preferably, your own user account's private key
+1. The `admin` private key passphrase, OR, preferably your own user account's private key passphrase
 
 Before being able to kick-off the provisioning scripts, it is assumed you have done everything mentioned in Preprocessing.md.
