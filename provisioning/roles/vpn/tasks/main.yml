@@ -1,0 +1,48 @@
+---
+# Requires EPEL-release repo
+- name: Install OpenVPN
+  yum:
+    name: openvpn-2.4.4
+    state: present
+
+- name: Write OpenVPN config file
+  template:
+    src: openvpn.conf.j2
+    dest: /etc/openvpn/server/openvpn.conf
+    owner: root
+    group: root
+    mode: 700
+
+- name: Write CA cert
+  copy:
+    content: "{{ ca.root_cert }}"
+    dest: "/etc/openvpn/server/{{ ca.root_cert_filename }}"
+
+- name: Write CRL
+  copy:
+    content: "{{ vpn_server.crl }}"
+    dest: "/etc/openvpn/server/{{ vpn_server.crl_filename }}"
+
+- name: Write DHParam file
+  copy:
+    content: "{{ vpn_server.dh_parameter_pem }}"
+    dest: "/etc/openvpn/server/{{ vpn_server.dh_parameter_filename }}"
+
+- name: Write OpenVPN server cert
+  copy:
+    content: "{{ vpn_server.cert }}"
+    dest: "/etc/openvpn/server/{{ vpn_server.cert_filename }}"
+
+- name: Write OpenVPN server private key
+  copy:
+    content: "{{ vpn_server.private_key }}"
+    dest: "/etc/openvpn/server/{{ vpn_server.private_key_filename }}"
+
+- name: Write TA key
+  copy:
+    content: "{{ vpn_server.ta_key }}"
+    dest: "/etc/openvpn/server/{{ vpn_server.ta_key_filename }}"
+
+- notify: Restart OpenVPN
+
+# TODO: log rotate log files?
