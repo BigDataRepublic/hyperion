@@ -1,0 +1,73 @@
+- name: Add Kubernetes repository to Yum
+  yum_repository:
+    name: kubernetes
+    state: present
+    description: Kubernetes
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    enabled: 1
+    gpgcheck: 1
+    repo_gpgcheck: 1
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+- name: Disable SELinux
+  selinux:
+    state: permissive
+    policy: targeted
+
+- name: Install kubelet, kubeadm and kubectl
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Enable and start kubelet daemon
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
+
+- name: Ensure forwarding of packets is allowed in iptables
+  iptables:
+    chain: FORWARD
+    policy: ACCEPT
+
+- name: Reload iptables firewall
+  systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Reset Kubernetes cluster
+  command: kubeadm reset
+
+- name: Initialize new Kubernetes cluster
+  command: "kubeadm init --apiserver-advertise-address={{ ansible_default_ipv4.address }}"
+
+- name: Create .kube directory in /root
+  file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+
+- name: Copy kubectl information to /root directory
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: yes
+    owner: root
+    group: root
+
+- name: Get kubectl version
+  shell: kubectl version | base64 | tr -d '\n'
+  register: kubever
+
+- name: Install a pod network into the Kubernetes cluster
+  command: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version={{ kubever.stdout }}"
+
+- name: Untaint all master nodes so that pods can be scheduled on masters as well
+  command: kubectl taint nodes --all node-role.kubernetes.io/master-
