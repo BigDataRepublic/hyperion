@@ -1,22 +1,57 @@
 ---
 
-- name: Make sure CA path exists
-  file:
+- name: Check if CA folder exists
+  stat:
     path: "{{ ca.path }}"
-    state: directory
-    owner: root
-    group: root
+  register: ca_exists
 
-# TODO: generate RSA key with passphrase instead of inline generation.
+- block:
+  - name: Make sure CA client certs path exists
+    file:
+      path: "{{ ca.path }}/{{ item }}"
+      state: directory
+      owner: root
+      group: root
+    with_items:
+      - openvpn_certs
+      - kubectl_certs
+      - certs
 
-- name: Generate CA
-  command: >
-    "openssl req -nodes -new -newkey rsa:4096 -x509 -keyout {{ ca.path }}/ca.key"
-    "-out {{ ca.path }}/ca.crt -days 730 -subj \"/CN={{ bdr_lan.hyperion_ip }}\""
+  # TODO: generate RSA key with passphrase instead of inline generation.
 
-- name: Set file permissions on CA private key
-  file:
-    path: "{{ ca.path }}/ca.key"
-    owner: root
-    group: root
-    mode: "0600"
+  - name: Generate CA
+    command: >
+      openssl req -nodes -new -newkey rsa:4096 -x509 -keyout {{ ca.path }}/ca.key
+      -out {{ ca.path }}/ca.crt -days 730 -subj "/CN={{ bdr_lan.hyperion_ip }}"
+
+  - name: Set file permissions on CA private key
+    file:
+      path: "{{ ca.path }}/ca.key"
+      owner: root
+      group: root
+      mode: "0600"
+
+  - name: Copy ca configuration
+    template:
+      src: ca.conf.j2
+      dest: "{{ ca.path }}/ca.conf"
+
+  - name: Create certindex
+    file:
+      path: "{{ ca.path }}/certindex"
+      state: touch
+
+  - name: Create CA serial
+    lineinfile:
+      path: "{{ ca.path }}/ca.srl"
+      line: "0001"
+      state: present
+      create: yes
+
+  - name: Create crlnumber file
+    lineinfile:
+      path: "{{ ca.path }}/crlnumber"
+      line: "0001"
+      state: present
+      create: yes
+  when: ca_exists.stat.exists == False

@@ -6,6 +6,7 @@ default_ca = hyperion
 authorityKeyIdentifier=keyid:always
 
 [ hyperion ]
+new_certs_dir = {{ ca.path }}/certs
 unique_subject = no
 certificate = {{ ca.path }}/ca.crt
 database = {{ ca.path }}/certindex
@@ -16,6 +17,15 @@ default_md = sha256
 x509_extensions = hyperion_extensions
 crlnumber = {{ ca.path }}/crlnumber
 default_crl_days = 1095
+policy = hyperion_policy
+
+[ hyperion_policy ]
+commonName = supplied
+stateOrProvinceName = supplied
+countryName = supplied
+emailAddress = optional
+organizationName = supplied
+organizationalUnitName = optional
 
 [ hyperion_extensions ]
 basicConstraints = CA:false
