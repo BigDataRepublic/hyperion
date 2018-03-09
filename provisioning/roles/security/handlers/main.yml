@@ -1,2 +1,14 @@
 - name: Restart sshd
-  service: name=sshd state=restarted
+  service:
+    name: sshd
+    state: restarted
+
+- name: Restart iptables
+  service:
+    name: iptables
+    state: restarted
+
+- name: Stop firewalld
+  service:
+    name: firewalld
+    state: stopped

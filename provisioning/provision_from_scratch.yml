@@ -1,6 +1,8 @@
 ---
 - hosts: gpu
   become: yes
+  vars_files:
+    - vars.yml
   roles:
     - repositories
     - update

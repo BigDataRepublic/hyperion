@@ -1,0 +1,14 @@
+[ req ]
+default_bits = 4096
+prompt = no
+default_md = sha256
+distinguished_name = dn
+
+[ dn ]
+C = NL
+ST = Utrecht
+L = Nieuwegein
+{% for group in user.kube_groups %}
+{{ loop.index }}.O = {{ group }}
+{% endfor %}
+CN = {{ user.name }}

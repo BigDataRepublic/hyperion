@@ -1,0 +1,7 @@
+---
+- name: Restart OpenVPN
+  become: true
+  service:
+    name: openvpn-server@openvpn
+    state: restarted
+    enabled: yes
