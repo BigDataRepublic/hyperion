@@ -32,3 +32,41 @@
     group: "{{ user.name }}"
     mode: u=rwX,g=,o=
     recurse: yes
+
+- name: Setup openvpn CSR config
+  template:
+    src: "vpn_csr.conf.j2"
+    dest: "/home/{{ user.name }}/vpn_csr.conf"
+
+- name: Setup kubectl CSR config
+  template:
+    src: "kubectl_csr.conf.j2"
+    dest: "/home/{{ user.name }}/kubectl_csr.conf"
+
+- name: Genereate VPN client CSR
+  command: >
+    "openssl req -new -newkey rsa:4096 -keyout /home/{{ user.name }}/openvpn.key"
+    "-out /home/{{ user.name }}/openvpn.csr -config /home/{{ user.name }}/vpn_csr.conf"
+
+- name: Sign CPN client CSR
+  command: "openssl ca -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/openvpn.csr -out /home/{{ user.name }}/openvpn.crt"
+
+- name: Backup openvpn certificate
+  copy:
+    src: "/home/{{ user.name }}/openvpn.crt"
+    dest: "{{ ca.path }}/openvpn_certs/{{ user.name }}.crt"
+    remote_src: yes
+
+- name: Generate Kubectl client CSR
+  command: >
+    "openssl req -new -newkey rsa:4096 -keyout /home/{{ user.name }}/kubectl.key"
+    "-out /home/{{ user.name }}/kubectl.csr -config /home/{{ user.name }}/kubectl_csr.conf"
+
+- name: Sign CPN Kubectl CSR
+  command: "openssl ca -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/kubectl.csr -out /home/{{ user.name }}/kubectl.crt"
+
+- name: Backup kubectl certificate
+  copy:
+    src: "/home/{{ user.name }}/kubectl.crt"
+    dest: "{{ ca.path }}/kubectl_certs/{{ user.name }}.crt"
+    remote_src: yes

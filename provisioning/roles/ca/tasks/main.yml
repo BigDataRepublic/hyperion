@@ -1,0 +1,22 @@
+---
+
+- name: Make sure CA path exists
+  file:
+    path: "{{ ca.path }}"
+    state: directory
+    owner: root
+    group: root
+
+# TODO: generate RSA key with passphrase instead of inline generation.
+
+- name: Generate CA
+  command: >
+    "openssl req -nodes -new -newkey rsa:4096 -x509 -keyout {{ ca.path }}/ca.key"
+    "-out {{ ca.path }}/ca.crt -days 730 -subj \"/CN={{ bdr_lan.hyperion_ip }}\""
+
+- name: Set file permissions on CA private key
+  file:
+    path: "{{ ca.path }}/ca.key"
+    owner: root
+    group: root
+    mode: "0600"
