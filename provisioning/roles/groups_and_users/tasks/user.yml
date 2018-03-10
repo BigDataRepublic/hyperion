@@ -33,25 +33,33 @@
     mode: u=rwX,g=,o=
     recurse: yes
 
-- name: Setup openvpn CSR config
+- name: Setup directory for certificates and keys
+  file:
+    path: "/home/{{ user.name }}/keys"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
+    state: directory
+
+- name: Setup VPN CSR config
   template:
     src: "vpn_csr.conf.j2"
-    dest: "/home/{{ user.name }}/vpn_csr.conf"
+    dest: "/home/{{ user.name }}/keys/vpn_csr.conf"
 
-- name: Setup kubectl CSR config
+- name: Setup Kubernetes CSR config
   template:
     src: "kubectl_csr.conf.j2"
-    dest: "/home/{{ user.name }}/kubectl_csr.conf"
+    dest: "/home/{{ user.name }}/keys/kubectl_csr.conf"
 
 - name: Generate VPN client CSR
   command: >
-    openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/openvpn.key
-    -out /home/{{ user.name }}/openvpn.csr -config /home/{{ user.name }}/vpn_csr.conf
+    openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/keys/openvpn.key
+    -out /home/{{ user.name }}/keys/openvpn.csr -config /home/{{ user.name }}/keys/vpn_csr.conf
 
-- name: Sign CPN client CSR
-  command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/openvpn.csr -out /home/{{ user.name }}/openvpn.crt"
+- name: Sign VPN client certificate
+  command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/keys/openvpn.csr -out /home/{{ user.name }}/keys/openvpn.crt"
 
-- name: Backup OpenVPN certificate
+- name: Backup VPN certificate
   copy:
     src: "/home/{{ user.name }}/openvpn.crt"
     dest: "{{ ca.path }}/openvpn_certs/{{ user.name }}.crt"
@@ -59,21 +67,33 @@
 
 - name: Generate Kubectl client CSR
   command: >
-    openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/kubectl.key
-    -out /home/{{ user.name }}/kubectl.csr -config /home/{{ user.name }}/kubectl_csr.conf
+    openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/keys/kubectl.key
+    -out /home/{{ user.name }}/keys/kubectl.csr -config /home/{{ user.name }}/keys/kubectl_csr.conf
 
-- name: Sign CPN Kubectl CSR
-  command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/kubectl.csr -out /home/{{ user.name }}/kubectl.crt"
+- name: Sign Kubernetes client certificate
+  command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/keys/kubectl.csr -out /home/{{ user.name }}/keys/kubectl.crt"
 
-- name: Backup kubectl certificate
+- name: Backup Kubernetes certificate
   copy:
-    src: "/home/{{ user.name }}/kubectl.crt"
+    src: "/home/{{ user.name }}/keys/kubectl.crt"
     dest: "{{ ca.path }}/kubectl_certs/{{ user.name }}.crt"
+    remote_src: yes
+
+- name: Remove CSR configuration files
+  file:
+    path: "/home/{{ user.name }}/keys/*_csr.conf"
+    state: absent
+
+- name: Copy CA certificate to user for convenience
+  copy:
+    src: "{{ ca.path }}/ca.crt"
+    dest: "/home/{{ user.name }}/keys/ca.crt"
     remote_src: yes
 
 - name: Set permissions for keys
   file:
-    path: "/home/{{ user.name }}/*.key"
-    mode: "0600"
+    path: "/home/{{ user.name }}/keys"
     owner: "{{ user.name }}"
     group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
+    recurse: yes
