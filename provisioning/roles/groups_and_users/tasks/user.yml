@@ -41,48 +41,72 @@
     mode: u=rwX,g=,o=
     state: directory
 
-- name: Setup VPN CSR config
-  template:
-    src: "vpn_csr.conf.j2"
-    dest: "/home/{{ user.name }}/keys/vpn_csr.conf"
+- name: Check if user already has a VPN cert
+  stat:
+    path: "/home/{{ user.name }}/keys/vpn.crt"
+  register: has_vpn_crt
 
-- name: Setup Kubernetes CSR config
-  template:
-    src: "kubectl_csr.conf.j2"
-    dest: "/home/{{ user.name }}/keys/kubectl_csr.conf"
+- block:
+    - name: Setup VPN CSR config
+      template:
+        src: "vpn_csr.conf.j2"
+        dest: "/home/{{ user.name }}/keys/vpn_csr.conf"
+    - name: Generate VPN client CSR
+      command: >
+        openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/keys/vpn.key
+        -out /home/{{ user.name }}/keys/vpn.csr -config /home/{{ user.name }}/keys/vpn_csr.conf
 
-- name: Generate VPN client CSR
-  command: >
-    openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/keys/openvpn.key
-    -out /home/{{ user.name }}/keys/openvpn.csr -config /home/{{ user.name }}/keys/vpn_csr.conf
+    - name: Sign VPN client certificate
+      command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/keys/vpn.csr -out /home/{{ user.name }}/keys/vpn.crt"
 
-- name: Sign VPN client certificate
-  command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/keys/openvpn.csr -out /home/{{ user.name }}/keys/openvpn.crt"
+    - name: Backup VPN certificate
+      copy:
+        src: "/home/{{ user.name }}/keys/vpn.crt"
+        dest: "{{ ca.path }}/vpn_certs/{{ user.name }}.crt"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+  when: has_vpn_crt.stat.exists == False
 
-- name: Backup VPN certificate
-  copy:
-    src: "/home/{{ user.name }}/openvpn.crt"
-    dest: "{{ ca.path }}/openvpn_certs/{{ user.name }}.crt"
-    remote_src: yes
+- name: Check if user already has a Kube cert
+  stat:
+    path: "/home/{{ user.name}}/keys/kube.crt"
+  register: has_kube_crt
 
-- name: Generate Kubectl client CSR
-  command: >
-    openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/keys/kubectl.key
-    -out /home/{{ user.name }}/keys/kubectl.csr -config /home/{{ user.name }}/keys/kubectl_csr.conf
+- block:
+    - name: Setup Kubernetes CSR config
+      template:
+        src: "kube_csr.conf.j2"
+        dest: "/home/{{ user.name }}/keys/kube_csr.conf"
 
-- name: Sign Kubernetes client certificate
-  command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/keys/kubectl.csr -out /home/{{ user.name }}/keys/kubectl.crt"
+    - name: Generate Kubernetes client CSR
+      command: >
+        openssl req -new -newkey rsa:4096 -nodes -keyout /home/{{ user.name }}/keys/kube.key
+        -out /home/{{ user.name }}/keys/kube.csr -config /home/{{ user.name }}/keys/kube_csr.conf
 
-- name: Backup Kubernetes certificate
-  copy:
-    src: "/home/{{ user.name }}/keys/kubectl.crt"
-    dest: "{{ ca.path }}/kubectl_certs/{{ user.name }}.crt"
-    remote_src: yes
+    - name: Sign Kubernetes client certificate
+      command: "openssl ca -batch -config {{ ca.path }}/ca.conf -notext -in /home/{{ user.name }}/keys/kube.csr -out /home/{{ user.name }}/keys/kube.crt"
+
+    - name: Backup Kubernetes certificate
+      copy:
+        src: "/home/{{ user.name }}/keys/kube.crt"
+        dest: "{{ ca.path }}/kube_certs/{{ user.name }}.crt"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+  when: has_kube_crt.stat.exists == False
 
 - name: Remove CSR configuration files
   file:
-    path: "/home/{{ user.name }}/keys/*_csr.conf"
+    path: "/home/{{ user.name }}/keys/{{ item }}"
     state: absent
+  with_items:
+    - kube.csr
+    - kube_csr.conf
+    - vpn.csr
+    - vpn_csr.conf
 
 - name: Copy CA certificate to user for convenience
   copy:
@@ -97,3 +121,40 @@
     group: "{{ user.name }}"
     mode: u=rwX,g=,o=
     recurse: yes
+
+- name: Slurp CA certificate to local
+  slurp:
+    src: "{{ ca.path }}/ca.crt"
+  register: ca_cert
+
+- name: Slurp user kube certificate to local
+  slurp:
+    src: "/home/{{ user.name }}/keys/kube.crt"
+  register: user_cert
+
+- name: Slurp user kube key to local
+  slurp:
+    src: "/home/{{ user.name }}/keys/kube.key"
+  register: user_key
+
+- name: Create .kube configuration directory for user
+  file:
+    path: "/home/{{ user.name }}/.kube"
+    state: directory
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
+
+- name: Set user certificate and key as facts
+  set_fact:
+    ca_cert_b64: "{{ ca_cert['content'] }}"
+    user_cert_b64: "{{ user_cert['content'] }}"
+    user_key_b64:  "{{ user_key['content'] }}"
+
+- name: Create kubeconfig file to be used by user for kubectl
+  template:
+    src: "kubeconfig.j2"
+    dest: "/home/{{ user.name }}/.kube/config"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
