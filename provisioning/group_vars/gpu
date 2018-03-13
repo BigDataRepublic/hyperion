@@ -6,7 +6,7 @@ sftp:
   port: 21 # Note that the default is 22 which conflicts with sshd
 
 vpn:
-  url: hyperion-vpn.bigdatarepublic.nl
+  url: hyperion.bigdatarepublic.nl
   port: 1194 # Default OpenVPN port
   subnet: "10.8.0.0" # Default OpenVPN subnet
   protocol: tcp
