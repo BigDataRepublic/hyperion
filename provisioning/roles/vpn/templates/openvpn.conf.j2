@@ -32,15 +32,15 @@ proto {{ vpn.protocol }}
 # the firewall for the TUN/TAP interface.
 ;dev tap
 dev tun
-ca {{ ca.root_cert_filename }}
-cert {{ vpn_server.cert_filename }}
-key {{ vpn_server.private_key_filename }}  # This file should be kept secret
-crl-verify {{ vpn_server.crl_filename }}
+ca {{ ca.path }}/{{ ca.root_cert_filename }}
+cert {{ vpn.server_cert_filename }}
+key {{ vpn.server_private_key_filename }}  # This file should be kept secret
+crl-verify {{ ca.path }}/{{ ca.crl_filename }}
 
 # Diffie hellman parameters.
 # Generate your own with:
 #   openssl dhparam -out dh2048.pem 2048
-dh {{ vpn_server.dh_parameter_filename }}
+dh {{ vpn.dh_parameter_filename }}
 
 
 # Network topology
