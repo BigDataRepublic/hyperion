@@ -1,5 +1,3 @@
----
-
 - name: Check if CA folder exists
   stat:
     path: "{{ ca.path }}"
@@ -13,8 +11,8 @@
       owner: root
       group: root
     with_items:
-      - openvpn_certs
-      - kubectl_certs
+      - vpn_certs
+      - kube_certs
       - certs
 
   # TODO: generate RSA key with passphrase instead of inline generation.

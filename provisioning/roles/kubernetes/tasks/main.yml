@@ -44,8 +44,29 @@
 - name: Reset Kubernetes cluster
   command: kubeadm reset
 
+- name: Make sure Kubernetes PKI directory exists
+  file:
+    path: /etc/kubernetes/pki
+    state: directory
+
+- name: Copy certificate to Kubernetes PKI directory
+  copy:
+    src: "{{ item }}"
+    dest: /etc/kubernetes/pki/
+    remote_src: yes
+  with_items:
+    - "{{ ca.path }}/ca.crt"
+    - "{{ ca.path }}/ca.key"
+
 - name: Initialize new Kubernetes cluster
   command: "kubeadm init --apiserver-advertise-address={{ ansible_default_ipv4.address }}"
+
+# TODO: Wait until cluster is properly initialized before continuing
+
+- name: Delete CA key from Kubernetes PKI directory
+  file:
+    path: "/etc/kubernetes/pki/ca.key"
+    state: absent
 
 - name: Create .kube directory in /root
   file:
@@ -71,3 +92,22 @@
 
 - name: Untaint all master nodes so that pods can be scheduled on masters as well
   command: kubectl taint nodes --all node-role.kubernetes.io/master-
+
+- name: Copy Kubernetes configuration files to host
+  copy:
+    src: "confs/{{ item | basename }}"
+    dest: "/tmp/{{ item | basename }}"
+  with_fileglob:
+    - "confs/*.yml"
+
+- name: Setup Kubernetes configuration
+  command: "kubectl create -f /tmp/{{ item | basename }}"
+  with_fileglob:
+    - "confs/*.yml"
+
+- name: Remove temporary configuration file
+  file:
+    path: "/tmp/{{ item | basename }}"
+    state: absent
+  with_fileglob:
+    - "confs/*.yml"
