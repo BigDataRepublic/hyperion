@@ -36,10 +36,10 @@
     chain: FORWARD
     policy: ACCEPT
 
-- name: Reload iptables firewall
+- name: Make sure firewalld is disabled
   systemd:
     name: firewalld
-    state: reloaded
+    state: stopped
 
 - name: Reset Kubernetes cluster
   command: kubeadm reset
@@ -58,8 +58,23 @@
     - "{{ ca.path }}/ca.crt"
     - "{{ ca.path }}/ca.key"
 
+- name: Copy kubeadm configuration cluster definition to tmp
+  template:
+    src: kubeadm-cluster-def.yml
+    dest: /tmp/kubeadm-cluster-def.yml
+
+- name: Copy audit configuration to the correct Kubernetes directory
+  copy:
+    src: "confs/audit-conf.yml"
+    dest: "/etc/kubernetes/pki/audit-conf.yml"
+
 - name: Initialize new Kubernetes cluster
-  command: "kubeadm init --apiserver-advertise-address={{ ansible_default_ipv4.address }}"
+  command: "kubeadm init --config /tmp/kubeadm-cluster-def.yml"
+
+- name: Cleanup temporary files
+  file:
+    path: /tmp/kubeadm-cluster-def.yml
+    state: absent
 
 # TODO: Wait until cluster is properly initialized before continuing
 
