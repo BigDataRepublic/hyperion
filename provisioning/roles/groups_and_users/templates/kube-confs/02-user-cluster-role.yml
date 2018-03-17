@@ -1,0 +1,9 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ user.name }}-cluster-role
+rules:
+  # Add read rights to namespaces so that the user can select their own namespace in the Dashboard
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "watch", "list"]

@@ -2,6 +2,7 @@ apiVersion: v1
 kind: LimitRange
 metadata:
   name: limit-resources
+  namespace: {{ user.name }}
 spec:
   limits:
     - default:
@@ -10,4 +11,7 @@ spec:
       defaultRequest:
         memory: 512Mi
         cpu: 1
+      max:
+        memory: 24Gi
+        cpu: 2
       type: Container

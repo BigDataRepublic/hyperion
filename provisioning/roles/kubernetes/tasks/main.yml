@@ -65,7 +65,7 @@
 
 - name: Copy audit configuration to the correct Kubernetes directory
   copy:
-    src: "confs/audit-conf.yml"
+    src: "audit-conf.yml"
     dest: "/etc/kubernetes/pki/audit-conf.yml"
 
 - name: Initialize new Kubernetes cluster
@@ -76,7 +76,9 @@
     path: /tmp/kubeadm-cluster-def.yml
     state: absent
 
-# TODO: Wait until cluster is properly initialized before continuing
+- name: Sleep until cluster is up and running
+  pause:
+    seconds: 30
 
 - name: Delete CA key from Kubernetes PKI directory
   file:
@@ -116,7 +118,7 @@
     - "confs/*.yml"
 
 - name: Setup Kubernetes configuration
-  command: "kubectl create -f /tmp/{{ item | basename }}"
+  command: "kubectl apply -f /tmp/{{ item | basename }}"
   with_fileglob:
     - "confs/*.yml"
 
@@ -126,3 +128,20 @@
     state: absent
   with_fileglob:
     - "confs/*.yml"
+
+- name: Enable GPU acceleration on Kubernetes
+  lineinfile:
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    line: 'Environment="KUBELET_EXTRA_ARGS=--feature-gates=DevicePlugins=true"'
+
+- name: Restart kubelet
+  systemd:
+    daemon_reload: yes
+    name: kubelet
+    state: restarted
+
+- name: Inject Nvidia device plugin
+  command: "kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.9/nvidia-device-plugin.yml"
+
+- name: Setup Kubernetes Dashboard
+  command: "kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml"

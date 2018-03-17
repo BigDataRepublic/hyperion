@@ -1,10 +1,71 @@
-- name: Install Docker
+- name: Add docker repository
+  yum_repository:
+    name: docker-ce-stable
+    state: present
+    description: Docker CE Stable - $basearch
+    baseurl: "https://download.docker.com/linux/centos/7/$basearch/stable"
+    enabled: 1
+    gpgcheck: 1
+    repo_gpgcheck: 1
+    gpgkey:
+      - "https://download.docker.com/linux/centos/gpg"
+
+- name: Install Docker prerequisites
   yum:
-    name: docker
+    name: "{{ item }}"
     state: latest
+  with_items:
+    - device-mapper-persistent-data
+    - lvm2
+
+- name: Install Docker
+  # Note: as of writing, latest supported Docker version by Kubernetes is 17.03
+  # Note: we use a command instead of the yum module since we need to set additional options not supported by Ansible
+  command: yum install -y --setopt=obsoletes=0 docker-ce-17.03.2.ce-1.el7.centos.x86_64
 
 - name: Enable and start Docker daemon
   systemd:
     name: docker
     enabled: yes
     state: started
+
+- name: Add nvidia-docker repositories
+  yum_repository:
+    name: "{{ item }}"
+    state: present
+    description: "{{ item }}"
+    baseurl: "https://nvidia.github.io/{{ item }}/centos7/$basearch"
+    enabled: 1
+    gpgcheck: 0
+    repo_gpgcheck: 1
+    gpgkey:
+      - "https://nvidia.github.io/{{ item }}/gpgkey"
+  with_items:
+    - libnvidia-container
+    - nvidia-container-runtime
+    - nvidia-docker
+
+- name: Install nvidia-docker
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - nvidia-container-runtime-2.0.0-1.docker17.03.2.x86_64
+    - nvidia-docker2-2.0.3-1.docker17.03.2.ce.noarch
+
+- name: Fix cgroup drivers in Docker daemon
+  lineinfile:
+    path: /usr/lib/systemd/system/docker.service
+    regexp: '^ExecStart=/usr/bin/dockerd'
+    line: "ExecStart=/usr/bin/dockerd --exec-opt native.cgroupdriver=systemd"
+
+- name: Set default runtime to nvidia-docker
+  lineinfile:
+    path: /etc/docker/daemon.json
+    line: "    \"default-runtime\": \"nvidia\","
+    insertbefore: "\"runtimes\": {"
+
+- name: Restart the Docker daemon
+  systemd:
+    name: docker
+    state: restarted
