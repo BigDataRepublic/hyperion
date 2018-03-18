@@ -129,10 +129,10 @@
   with_fileglob:
     - "confs/*.yml"
 
-- name: Enable GPU acceleration on Kubernetes
+- name: Enable GPU acceleration in the Kubelet
   lineinfile:
     path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-    line: 'Environment="KUBELET_EXTRA_ARGS=--feature-gates=DevicePlugins=true"'
+    line: 'Environment="KUBELET_EXTRA_ARGS=--feature-gates=DevicePlugins=true,PodPriority=true"'
 
 - name: Restart kubelet
   systemd:
