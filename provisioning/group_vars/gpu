@@ -14,6 +14,7 @@ vpn:
   dh_parameter_filename: vpn_dh_param.pem
   server_private_key_filename: openvpn.key
   server_cert_filename: openvpn.crt
+  ta_key_filename: ta.key
 
 ca:
   path: /etc/pki/hyperion/ca

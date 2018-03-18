@@ -151,6 +151,14 @@
     user_cert_b64: "{{ user_cert['content'] }}"
     user_key_b64:  "{{ user_key['content'] }}"
 
+- name: Setup user's kube config
+  template:
+    src: "kubeconfig.j2"
+    dest: "/home/{{ user.name }}/.kube/config"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
+
 - name: Copy Kubernetes configuration files to host
   template:
     src: "kube-confs/{{ item | basename }}"
@@ -176,3 +184,35 @@
     state: absent
   with_fileglob:
     - "../templates/kube-confs/*.yml"
+
+# OpenVPN ---
+
+- name: Slurp vpn client cert to local
+  slurp:
+    src: "/home/{{ user.name }}/keys/vpn.crt"
+  register: vpn_client_cert
+
+- name: Slurp vpn client key to local
+  slurp:
+    src: "/home/{{ user.name }}/keys/vpn.key"
+  register: vpn_client_key
+
+- name: Slurp ta key to local
+  slurp:
+    src: "/etc/openvpn/server/{{ vpn.ta_key_filename }}"
+  register: ta_key
+
+- name: Set facts for ovpn file generation
+  set_fact:
+    ca_cert: "{{ ca_cert_b64 | b64decode }}"
+    vpn_client_cert: "{{ vpn_client_cert['content'] | b64decode }}"
+    vpn_client_key: "{{ vpn_client_key['content'] | b64decode }}"
+    ta_key: "{{ ta_key['content'] | b64decode }}"
+
+- name: Generate ovpn client file for user.
+  template:
+    src: "client.ovpn.j2"
+    dest: "/home/{{ user.name }}/keys/{{ user.name }}.ovpn"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=

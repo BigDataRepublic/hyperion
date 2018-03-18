@@ -35,7 +35,7 @@ dev tun
 ca {{ ca.path }}/{{ ca.root_cert_filename }}
 cert {{ vpn.server_cert_filename }}
 key {{ vpn.server_private_key_filename }}  # This file should be kept secret
-crl-verify {{ ca.path }}/{{ ca.crl_filename }}
+;crl-verify {{ ca.path }}/{{ ca.crl_filename }}
 
 # Diffie hellman parameters.
 # Generate your own with:
@@ -111,7 +111,6 @@ ifconfig-pool-persist ipp.txt
 # First, uncomment out these lines:
 ;client-config-dir ccd
 ;route 192.168.40.128 255.255.255.248
-route {{ bdr_lan.subnet }} 255.255.255.0
 
 # Then create a file ccd/Thelonious with this line:
 #   iroute 192.168.40.128 255.255.255.248
@@ -179,7 +178,7 @@ route {{ bdr_lan.subnet }} 255.255.255.0
 # CERTIFICATE/KEY PAIRS FOR EACH CLIENT,
 # EACH HAVING ITS OWN UNIQUE "COMMON NAME",
 # UNCOMMENT THIS LINE OUT.
-duplicate-cn
+;duplicate-cn
 
 # The keepalive directive causes ping-like
 # messages to be sent back and forth over
@@ -201,7 +200,7 @@ keepalive 10 120
 # a copy of this key.
 # The second parameter should be '0'
 # on the server and '1' on the clients.
-tls-auth {{ vpn_server.ta_key_filename }} 0 # This file is secret
+tls-auth {{ vpn.ta_key_filename }} 0 # This file is secret
 
 # Select a cryptographic cipher.
 # This config item must be copied to
@@ -220,7 +219,7 @@ tls-auth {{ vpn_server.ta_key_filename }} 0 # This file is secret
 # For compression compatible with older clients use comp-lzo
 # If you enable it here, you must also
 # enable it in the client config file.
-comp-lzo
+;comp-lzo
 
 # The maximum number of concurrently connected
 # clients we want to allow.
@@ -255,8 +254,6 @@ status /var/log/openvpn-status.log
 # or the other (but not both).
 #log         /var/log/openvpn.log
 log-append  /var/log/openvpn.log
-
-
 
 # Set the appropriate level of log
 # file verbosity.
