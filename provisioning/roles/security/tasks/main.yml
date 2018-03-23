@@ -9,41 +9,55 @@
 # because we're more familiar with that tool.
 - name: Install IPTables
   yum:
-    name: iptables=1.4.21
+    name: iptables-services-1.4.21
+
+- name: Enable IPTables service
+  systemd:
+    name: iptables
+    enabled: yes
+    state: started
+
+- name: Stop firewalld
+  service:
+    name: firewalld
+    state: stopped
+
+- name: Allow established incoming connections
+  iptables:
+    chain: INPUT
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+
+- name: Allow VPN traffic from WAN
+  iptables:
+    chain: INPUT
+    protocol: "{{ vpn.protocol }}"
+    destination_port: "{{ vpn.port }}"
+    jump: ACCEPT
+
+- name: Allow SSH and HTTPS traffic from VPN subnet
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    source: "{{ vpn.subnet }}/255.255.255.0"
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+  with_items:
+    - 22
+    - 443
+
+- name: Allow port range for LAN
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    source: "{{ bdr_lan.subnet }}/255.255.255.0"
+    destination_port: "8000:9000"
+    jump: ACCEPT
 
 - name: Block all incoming traffic
   iptables:
     chain: INPUT
     policy: DROP
 
-- name: Allow established incoming connections
-  iptables:
-    chain: INPUT
-    cstate: ESTABLISHED, RELATED
-    jump: ACCEPT
-
-- name: Allow VPN traffic from WAN
-  iptables:
-    chain: INPUT
-    destination_port: "{{ vpn.port }}"
-    jump: ACCEPT
-
-- name: Allow SSH, HTTPS and SFTP traffic from VPN subnet
-  iptables:
-    chain: INPUT
-    source: "{{ vpn.subnet }}/255.255.255.0"
-    destination_port: "22,443,{{ sftp.port }}"
-    jump: ACCEPT
-
-- name: Allow port range for LAN
-  iptables:
-    chain: INPUT
-    source: "{{ bdr_lan.subnet }}/255.255.255.0"
-    destination_port: "8000:9000"
-    jump: ACCEPT
-
-- name: Save IPtables rule changes
-  command: /sbin/service iptables save
-  notify:
-    - Stop firewalld
-    - Restart iptables
+- name: Reboot persist IPtables rule changes
+  command: /usr/libexec/iptables/iptables.init save

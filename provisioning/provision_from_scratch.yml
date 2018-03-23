@@ -1,14 +1,14 @@
 ---
 - hosts: gpu
   become: yes
-  vars_files:
-    - vars.yml
   roles:
     - repositories
     - update
     - essentials
+    - ca
+    - vpn
     - security
-    - groups_and_users
     - nvidia-drivers
     - docker
     - kubernetes
+    - groups_and_users

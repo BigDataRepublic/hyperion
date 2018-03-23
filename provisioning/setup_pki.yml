@@ -1,7 +1,0 @@
----
-- hosts: gpu
-  become: yes
-  roles:
-    - ca
-    - vpn
-    - groups_and_users

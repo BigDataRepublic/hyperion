@@ -2,9 +2,6 @@ bdr_lan:
   subnet: "192.168.3.0"
   hyperion_ip: "192.168.3.9"
 
-sftp:
-  port: 21 # Note that the default is 22 which conflicts with sshd
-
 vpn:
   url: hyperion.bigdatarepublic.nl
   port: 1194 # Default OpenVPN port

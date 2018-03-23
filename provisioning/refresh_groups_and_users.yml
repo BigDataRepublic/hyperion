@@ -1,5 +1,0 @@
----
-- hosts: gpu
-  become: yes
-  roles:
-    - groups_and_users
