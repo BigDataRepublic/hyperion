@@ -9,6 +9,7 @@ vpn:
   url: hyperion.bigdatarepublic.nl
   port: 1194 # Default OpenVPN port
   subnet: "10.8.0.0" # Default OpenVPN subnet
+  hyperion_ip: "10.8.0.1" # Default IP for Hyperion on OpenVPN subnet
   protocol: tcp
 
 ca:

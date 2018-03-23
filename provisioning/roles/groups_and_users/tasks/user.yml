@@ -151,10 +151,28 @@
     user_cert_b64: "{{ user_cert['content'] }}"
     user_key_b64:  "{{ user_key['content'] }}"
 
-- name: Create kubeconfig file to be used by user for kubectl
+- name: Copy Kubernetes configuration files to host
   template:
-    src: "kubeconfig.j2"
-    dest: "/home/{{ user.name }}/.kube/config"
-    owner: "{{ user.name }}"
-    group: "{{ user.name }}"
-    mode: u=rwX,g=,o=
+    src: "kube-confs/{{ item | basename }}"
+    dest: "/tmp/{{ item | basename }}"
+  with_fileglob:
+    - "../templates/kube-confs/*.yml"
+
+- name: Setup Kubernetes configuration
+  command: "kubectl apply -f /tmp/{{ item | basename }}"
+  with_fileglob:
+    - "../templates/kube-confs/*-user-*.yml"
+
+- name: Setup Kubernetes configuration for administrators
+  command: "kubectl apply -f /tmp/{{ item | basename }}"
+  with_fileglob:
+    - "../templates/kube-confs/*-admin-*.yml"
+  when:
+    "'administrators' in user.groups"
+
+- name: Remove temporary configuration file
+  file:
+    path: "/tmp/{{ item | basename }}"
+    state: absent
+  with_fileglob:
+    - "../templates/kube-confs/*.yml"

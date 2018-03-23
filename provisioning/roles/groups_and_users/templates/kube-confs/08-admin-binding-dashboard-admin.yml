@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dashboard-{{ user.name }}-admin-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: administrators
+subjects:
+- kind: ServiceAccount
+  name: dashboard-{{ user.name }}
+  namespace: {{ user.name }}
