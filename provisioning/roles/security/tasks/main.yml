@@ -28,6 +28,12 @@
     ctstate: ESTABLISHED,RELATED
     jump: ACCEPT
 
+- name: Allow all incoming traffic from loopback device
+  iptables:
+    chain: INPUT
+    in_interface: lo
+    jump: ACCEPT
+
 - name: Allow VPN traffic from WAN
   iptables:
     chain: INPUT
@@ -35,7 +41,7 @@
     destination_port: "{{ vpn.port }}"
     jump: ACCEPT
 
-- name: Allow SSH and HTTPS traffic from VPN subnet
+- name: Allow SSH, HTTPS and kubectl traffic from VPN subnet
   iptables:
     chain: INPUT
     protocol: tcp
@@ -45,6 +51,7 @@
   with_items:
     - 22
     - 443
+    - 6443
 
 - name: Allow port range for LAN
   iptables:
