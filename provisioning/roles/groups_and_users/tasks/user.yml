@@ -168,13 +168,11 @@
 
 - name: Setup Kubernetes configuration
   command: "kubectl apply -f /tmp/{{ item | basename }}"
-  with_fileglob:
-    - "../templates/kube-confs/*-user-*.yml"
+  with_items: "{{ lookup('fileglob', '../templates/kube-confs/*-user-*.yml').split(',') | sort }}"
 
 - name: Setup Kubernetes configuration for administrators
   command: "kubectl apply -f /tmp/{{ item | basename }}"
-  with_fileglob:
-    - "../templates/kube-confs/*-admin-*.yml"
+  with_items: "{{ lookup('fileglob', '../templates/kube-confs/*-admin-*.yml').split(',') | sort }}"
   when:
     "'administrators' in user.kube_groups"
 
