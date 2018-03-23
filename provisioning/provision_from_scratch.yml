@@ -11,4 +11,5 @@
     - nvidia-drivers
     - docker
     - kubernetes
+    - cron
     - groups_and_users
