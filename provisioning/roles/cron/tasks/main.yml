@@ -1,0 +1,16 @@
+- name: Copy cron scripts
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/sbin/cron/"
+    mode: u=rwx,g=,o=
+  with_items:
+    - "prune_docker_images.sh"
+
+- name: Add Docker prune job to crontab
+  cron:
+    name: "prune-docker"
+    job: "/usr/local/sbin/cron/prune_docker_images.sh"
+    day: 1
+    hour: 4
+    minute: 0
+    user: root
