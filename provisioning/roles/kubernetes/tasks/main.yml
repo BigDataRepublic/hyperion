@@ -31,16 +31,6 @@
     enabled: yes
     state: started
 
-- name: Ensure forwarding of packets is allowed in iptables
-  iptables:
-    chain: FORWARD
-    policy: ACCEPT
-
-- name: Make sure firewalld is disabled
-  systemd:
-    name: firewalld
-    state: stopped
-
 - name: Reset Kubernetes cluster
   command: kubeadm reset
 

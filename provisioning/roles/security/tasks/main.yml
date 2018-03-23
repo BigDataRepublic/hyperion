@@ -53,6 +53,15 @@
     - 443
     - 6443
 
+- name: Allow pods to access API server in Kubernetes
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination: "{{ vpn.hyperion_ip }}" # this is the IP the API server listens on
+    in_interface: weave
+    destination_port: 6443
+    jump: ACCEPT
+
 - name: Allow port range for LAN
   iptables:
     chain: INPUT
