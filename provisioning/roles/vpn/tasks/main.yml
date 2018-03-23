@@ -5,6 +5,66 @@
     name: openvpn-2.4.4
     state: present
 
+- name: Start OpenVPN
+  become: true
+  service:
+    name: openvpn-server@openvpn
+    state: restarted
+    enabled: yes
+
+- name: Write DHParam file
+  template:
+    # This is not a secret, so it may be stored in a template.
+    src: "dh2048.pem"
+    dest: "/etc/openvpn/server/{{ vpn.dh_parameter_filename }}"
+
+- name: Check if TA key has already been generated
+  stat:
+    path: "/etc/openvpn/server/{{ vpn.ta_key_filename }}"
+  register: has_ta_key
+
+- block:
+  - name: Generate TA key
+    command: "openvpn --genkey --secret /etc/openvpn/server/{{ vpn.ta_key_filename }}"
+
+  - name: Set file permissions on generated TA key
+    file:
+      path: "/etc/openvpn/server/{{ vpn.ta_key_filename }}"
+      owner: openvpn
+      mode: u=rw,g=,o=
+  when: has_ta_key.stat.exists == False
+
+- name: Check if openvpn server certificate exists
+  stat:
+    path: "/etc/openvpn/server/{{ vpn.server_cert_filename }}"
+  register: openvpn_server_cert
+
+- block:
+  - name: Setup VPN server CSR config
+    template:
+      src: "openvpn_server_csr.conf.j2"
+      dest: "/etc/openvpn/server/openvpn_server_csr.conf"
+
+  - name: Generate VPN server CSR
+    command: >
+      openssl req -new -newkey rsa:4096 -nodes
+      -keyout /etc/openvpn/server/{{ vpn.server_private_key_filename }}
+      -out /etc/openvpn/server/openvpn.csr
+      -config /etc/openvpn/server/openvpn_server_csr.conf
+
+  - name: Set VPN server private key permissions
+    file:
+      path: "/etc/openvpn/server/{{ vpn.server_private_key_filename }}"
+      owner: openvpn
+      mode: u=rw,g=,o=
+
+  - name: Sign VPN server CSR
+    command: >
+      openssl ca -batch -config {{ ca.path }}/ca.conf -notext
+      -in /etc/openvpn/server/openvpn.csr
+      -out /etc/openvpn/server/{{ vpn.server_cert_filename }}
+  when: openvpn_server_cert.stat.exists == False
+
 - name: Write OpenVPN config file
   template:
     src: openvpn.conf.j2
@@ -12,37 +72,5 @@
     owner: root
     group: root
     mode: 700
-
-- name: Write CA cert
-  copy:
-    content: "{{ ca.root_cert }}"
-    dest: "/etc/openvpn/server/{{ ca.root_cert_filename }}"
-
-- name: Write CRL
-  copy:
-    content: "{{ vpn_server.crl }}"
-    dest: "/etc/openvpn/server/{{ vpn_server.crl_filename }}"
-
-- name: Write DHParam file
-  copy:
-    content: "{{ vpn_server.dh_parameter_pem }}"
-    dest: "/etc/openvpn/server/{{ vpn_server.dh_parameter_filename }}"
-
-- name: Write OpenVPN server cert
-  copy:
-    content: "{{ vpn_server.cert }}"
-    dest: "/etc/openvpn/server/{{ vpn_server.cert_filename }}"
-
-- name: Write OpenVPN server private key
-  copy:
-    content: "{{ vpn_server.private_key }}"
-    dest: "/etc/openvpn/server/{{ vpn_server.private_key_filename }}"
-
-- name: Write TA key
-  copy:
-    content: "{{ vpn_server.ta_key }}"
-    dest: "/etc/openvpn/server/{{ vpn_server.ta_key_filename }}"
-
-- notify: Restart OpenVPN
-
+  notify: Restart OpenVPN
 # TODO: log rotate log files?
