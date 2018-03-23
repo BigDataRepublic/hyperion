@@ -176,7 +176,7 @@
   with_fileglob:
     - "../templates/kube-confs/*-admin-*.yml"
   when:
-    "'administrators' in user.groups"
+    "'administrators' in user.kube_groups"
 
 - name: Remove temporary configuration file
   file:
