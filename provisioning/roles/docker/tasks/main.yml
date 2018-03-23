@@ -53,11 +53,10 @@
     - nvidia-container-runtime-2.0.0-1.docker17.03.2.x86_64
     - nvidia-docker2-2.0.3-1.docker17.03.2.ce.noarch
 
-- name: Fix cgroup drivers in Docker daemon
-  lineinfile:
-    path: /usr/lib/systemd/system/docker.service
-    regexp: '^ExecStart=/usr/bin/dockerd'
-    line: "ExecStart=/usr/bin/dockerd --exec-opt native.cgroupdriver=systemd"
+- name: Add drop-in file for Docker daemon to fix cgroup drivers
+  copy:
+    src: "docker.conf"
+    dest: "/etc/systemd/system/docker.d/docker.conf"
 
 - name: Set default runtime to nvidia-docker
   lineinfile:
