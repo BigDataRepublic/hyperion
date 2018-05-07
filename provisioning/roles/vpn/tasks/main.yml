@@ -2,14 +2,15 @@
 # Requires EPEL-release repo
 - name: Install OpenVPN
   yum:
-    name: openvpn-2.4.4
+    name: openvpn-2.4.5
     state: present
+    allow_downgrade: true
 
 - name: Start OpenVPN
   become: true
   service:
     name: openvpn-server@openvpn
-    state: restarted
+    state: stopped
     enabled: yes
 
 - name: Write DHParam file

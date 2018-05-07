@@ -20,7 +20,7 @@
   - name: Generate CA
     command: >
       openssl req -nodes -new -newkey rsa:4096 -x509 -keyout {{ ca.path }}/ca.key
-      -out {{ ca.path }}/{{ root_cert_filename }} -days 730 -subj "/CN={{ vpn.hyperion_ip }}"
+      -out {{ ca.path }}/{{ ca.root_cert_filename }} -days 730 -subj "/CN={{ vpn.hyperion_ip }}"
 
   - name: Set file permissions on CA private key
     file:

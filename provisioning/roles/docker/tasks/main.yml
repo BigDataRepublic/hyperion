@@ -18,16 +18,12 @@
     - device-mapper-persistent-data
     - lvm2
 
+# TODO: docker-ce 18 is installed by default somehow. Should try to fix this.
 - name: Install Docker
   # Note: as of writing, latest supported Docker version by Kubernetes is 17.03
   # Note: we use a command instead of the yum module since we need to set additional options not supported by Ansible
   command: yum install -y --setopt=obsoletes=0 docker-ce-17.03.2.ce-1.el7.centos.x86_64
 
-- name: Enable and start Docker daemon
-  systemd:
-    name: docker
-    enabled: yes
-    state: started
 
 - name: Add nvidia-docker repositories
   yum_repository:
@@ -48,15 +44,22 @@
 - name: Install nvidia-docker
   yum:
     name: "{{ item }}"
-    state: latest
   with_items:
     - nvidia-container-runtime-2.0.0-1.docker17.03.2.x86_64
     - nvidia-docker2-2.0.3-1.docker17.03.2.ce.noarch
 
+- name: Create docker.d folder
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "u=rwx,g=rx,o=rx"
+
 - name: Add drop-in file for Docker daemon to fix cgroup drivers
   copy:
     src: "docker.conf"
-    dest: "/etc/systemd/system/docker.d/docker.conf"
+    dest: "/etc/systemd/system/docker.service.d/docker.conf"
 
 - name: Set default runtime to nvidia-docker
   lineinfile:
@@ -64,7 +67,12 @@
     line: "    \"default-runtime\": \"nvidia\","
     insertbefore: "\"runtimes\": {"
 
+#- name: Enable and start Docker daemon
+#  systemd:
+#    name: docker
+#    state: started
 - name: Restart the Docker daemon
   systemd:
     name: docker
+    enabled: yes
     state: restarted
