@@ -1,6 +1,6 @@
 ## File that is used by clients that want to connect
 
-port {{ vpn.port }} # or any other port you want to use
+port {{ vpn.public_port }} # or any other port you want to use
 dev tun # VPN tunnel layer 3
 remote {{ vpn.url }}
 remote-random # Pick random IP address from A record (if multiple)

@@ -2,14 +2,14 @@
 - hosts: gpu
   become: yes
   roles:
-    - repositories
-    - update
-    - essentials
-    - ca
-    - vpn
-    - security
-    - nvidia-drivers
-    - docker
-    - kubernetes
-    - cron
+    #- repositories
+    #- update
+    #- essentials
+    #- ca
+    #- vpn
+    #- nvidia-drivers
+    #- docker
+    #- kubernetes
+    #- cron
     - groups_and_users
+    - security

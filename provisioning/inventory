@@ -1,2 +1,2 @@
 [gpu]
-hyperion ansible_host=192.168.3.9
+hyperion ansible_host=10.8.0.1

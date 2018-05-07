@@ -5,6 +5,14 @@
     state: present
   with_items: " {{ linux_groups }}"
 
+- name: Allow administrators to sudo without password (for Ansible provisioning)
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%administrators'
+    line: '%administrators ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
 - name: Create and setup each user
   include_tasks: user.yml
   with_items: "{{ linux_users }}"

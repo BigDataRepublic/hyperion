@@ -1,3 +1,15 @@
+- name: Setup bridge nf iptables call
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    state: present
+
+- name: Setup bridge nf iptables call for ipv6
+  sysctl:
+     name: net.bridge.bridge-nf-call-ip6tables
+     value: 1
+     state: present
+
 - name: Add docker repository
   yum_repository:
     name: docker-ce-stable
@@ -67,10 +79,6 @@
     line: "    \"default-runtime\": \"nvidia\","
     insertbefore: "\"runtimes\": {"
 
-#- name: Enable and start Docker daemon
-#  systemd:
-#    name: docker
-#    state: started
 - name: Restart the Docker daemon
   systemd:
     name: docker

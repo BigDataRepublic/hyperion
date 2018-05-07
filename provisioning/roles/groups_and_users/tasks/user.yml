@@ -8,7 +8,6 @@
     name: "{{ user.name }}"
     comment: "{{ user.comment }}"
     groups: "{{ user.groups }}"
-    password: "{{ user.password }}"
     generate_ssh_key: yes
     ssh_key_type: ed25519
     update_password: on_create
