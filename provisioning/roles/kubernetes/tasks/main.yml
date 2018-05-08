@@ -21,9 +21,9 @@
     name: "{{ item }}"
     state: latest
   with_items:
-    - kubelet
-    - kubeadm
-    - kubectl
+    - kubelet-{{ kubernetes.version }}.{{ kubernetes.patch_version }}
+    - kubeadm-{{ kubernetes.version }}.{{ kubernetes.patch_version }}
+    - kubectl-{{ kubernetes.version }}.{{ kubernetes.patch_version }}
 
 - name: Enable and start kubelet daemon
   systemd:
@@ -131,7 +131,7 @@
     state: restarted
 
 - name: Inject Nvidia device plugin
-  command: "kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.9/nvidia-device-plugin.yml"
+  command: "kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v{{ kubernetes.version }}/nvidia-device-plugin.yml"
 
 - name: Setup Kubernetes Dashboard
   command: "kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml"

@@ -18,3 +18,7 @@ ca:
   path: /etc/pki/hyperion/ca
   root_cert_filename: ca.crt
   crl_filename: ca.crl
+
+kubernetes:
+  version: "1.10"
+  patch_version: 2
