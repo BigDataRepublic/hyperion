@@ -13,24 +13,6 @@
     update_password: on_create
     state: present
 
-# Block executed for non-admins. This configures that such an user is not
-# allowed to create SSH sessions and only allowed to SFTP in his/her own
-# home dir.
-- block:
-    - name: Don't allow logins for user if not in administrator group
-      user:
-        name: "{{ user.name }}"
-        shell: /sbin/nologin
-
-    - name: Let home folder be owned by root. Only this allows Chroot trap for SFTP
-      file:
-        path: "/home/{{ user.name }}"
-        state: directory
-        owner: root
-        group: root
-        mode: u=rwX,g=rX,o=
-  when: "'administrators' not in user.kube_groups"
-
 - name: Grab user's public key
   slurp:
     src: "/home/{{ user.name }}/.ssh/id_ed25519.pub"
@@ -50,6 +32,45 @@
     mode: u=rwX,g=,o=
     recurse: yes
 
+# Block executed for non-admins. This configures that such an user is not
+# allowed to create SSH sessions and only allowed to SFTP in his/her own
+# home dir.
+- block:
+    - name: Don't allow logins for user if not in administrator group
+      user:
+        name: "{{ user.name }}"
+        shell: /sbin/nologin
+
+    - name: Let home folder be owned by root. Only this allows Chroot trap for SFTP
+      file:
+        path: "/home/{{ user.name }}"
+        state: directory
+        owner: root
+        group: root
+        mode: u=rwX,g=rX,o=rX
+
+    # Step is needed to still alow key authentication while the user's home dir is
+    # owned by root. This general authorized_keys dir is also added to the sshd_config
+    # so that sshd checks this for matching keys.
+    - name: Create authorized_keys file outside of home dir.
+      file:
+        path: /etc/ssh/authorized_keys
+        state: directory
+        owner: root
+        group: root
+        mode: u=rwX,g=rX,o=rX
+
+    - name: Create user specific authorized_keys file
+      copy:
+        src: "/home/{{ user.name }}/.ssh/authorized_keys"
+        dest: "/etc/ssh/authorized_keys/{{ user.name }}"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
+      notify: Restart sshd
+  when: "'administrators' not in user.kube_groups"
+
 - name: Setup directory for certificates and keys
   file:
     path: "/home/{{ user.name }}/keys"
@@ -57,6 +78,18 @@
     group: "{{ user.name }}"
     mode: u=rwX,g=,o=
     state: directory
+
+- name: Copy SSH keys to keys folder
+  copy:
+    remote_src: yes
+    src: "/home/{{ user.name }}/.ssh/{{ item }}"
+    dest: "/home/{{ user.name }}/keys/{{ item }}"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
+  with_items:
+    - id_ed25519
+    - id_ed25519.pub
 
 - name: Check if user already has a VPN cert
   stat:
