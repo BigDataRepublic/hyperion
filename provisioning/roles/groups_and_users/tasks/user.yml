@@ -32,6 +32,28 @@
     mode: u=rwX,g=,o=
     recurse: yes
 
+- name: Create scratch directory
+  file:
+    path: "/scratch/{{ user.name }}"
+    state: directory
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+
+- name: Create scratch directory in user folder
+  file:
+    path: "/home/{{ user.name }}/scratch"
+    state: directory
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+
+- name: Create a bind mount from user folder to scratch directory so they can break their chroot
+  mount:
+    boot: yes
+    opts: bind
+    path: "/home/{{ user.name }}/scratch"
+    src: "/scratch/{{ user.name}}"
+    state: mounted
+
 # Block executed for non-admins. This configures that such an user is not
 # allowed to create SSH sessions and only allowed to SFTP in his/her own
 # home dir.
