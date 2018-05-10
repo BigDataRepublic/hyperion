@@ -44,7 +44,12 @@ PubkeyAuthentication yes
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile      .ssh/authorized_keys
+# ---HYPERION ADJUSTMENT---
+# add /etc/ssh/... so that SFTP users that are Chrooted into
+# their home dir can also use pubkey authentication. Because the Chrooted user's home
+# is owned by root, the regular ~/.ssh is not supported anymore.
+# ---HYPERION ADJUSTMENT---
+AuthorizedKeysFile      /etc/ssh/authorized_keys/%u .ssh/authorized_keys
 
 #AuthorizedPrincipalsFile none
 
@@ -139,6 +144,9 @@ Subsystem       sftp    internal-sftp
 #       PermitTTY no
 #       ForceCommand cvs server
 
+# ---HYPERION ADJUSTMENT---
+# Chroot non-administrator users to their home directory and only allow SFTP access.
+# ---HYPERION ADJUSTMENT---
 Match Group developers,!administrators
       ChrootDirectory %h
       ForceCommand internal-sftp
