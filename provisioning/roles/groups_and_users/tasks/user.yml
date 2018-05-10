@@ -231,6 +231,15 @@
     group: "{{ user.name }}"
     mode: u=rwX,g=,o=
 
+- name: Copy user's kube config to keys directory
+  copy:
+    src: "/home/{{ user.name }}/.kube/config"
+    dest: "/home/{{ user.name }}/keys/config"
+    owner: "{{ user.name }}"
+    group: "{{ user.name }}"
+    mode: u=rwX,g=,o=
+    remote_src: yes
+
 - name: Copy Kubernetes configuration files to host
   template:
     src: "kube-confs/{{ item | basename }}"
