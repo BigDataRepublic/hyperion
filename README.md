@@ -47,12 +47,11 @@ To start a full provisioning of Hyperion, run the following command:
 `ansible-playbook -i inventory --ask-vault-pass -u <USER_NAME> provision_from_scratch.yml`
 
 This will ask you for an Ansible Vault password, which is shared offline between administrators.
-Ansible provisioning should always be done as the `admin` user with public key authentication.
-The private key and its associated passphrase are also shared offline.
+Ansible provisioning should always be done as your personal user with public key authentication.
 In short, before you can start provisioning, you need someone to give you the following:
 
 1. The Ansible Vault password
-1. The `admin` private key, OR, preferably, your own user account's private key
-1. The `admin` private key passphrase, OR, preferably your own user account's private key passphrase
+1. The private key to your user account, if you don't have this already
+1. Membership to the `administrators` Linux group. Other administrators can facilitate this.
 
 Before being able to kick-off the provisioning scripts, it is assumed you have done everything mentioned in Preprocessing.md.
