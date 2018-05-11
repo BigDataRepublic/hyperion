@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+#To protect your files from deletion, touch them at least once every 30 days
+#We may consider also removing empty directories, but then again that should have minimal inode impact :)
+(
+/bin/find /scratch -type f -mtime +30 -print0 | /bin/xargs --no-run-if-empty -0 /usr/bin/rm --verbose --force
+) | /usr/bin/logger -t clean-scratch 2>&1

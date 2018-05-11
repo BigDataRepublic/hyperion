@@ -14,3 +14,9 @@
     hour: 4
     minute: 0
     user: root
+
+- name: Add scratch clean job to cron
+  copy:
+    src: "clean-scratch"
+    dest: "/etc/cron.daily/clean-scratch"
+    mode: u=rwx,g=,o=
