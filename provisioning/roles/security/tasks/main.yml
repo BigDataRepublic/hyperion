@@ -80,3 +80,30 @@
 
 - name: Reboot persist IPtables rule changes
   command: /usr/libexec/iptables/iptables.init save
+
+#As the tunnel has not ipv6 support enabled, we block almost all ipv6
+
+- name: Allow ipv6 icmp
+  iptables:
+    ip_version: ipv6
+    chain: INPUT
+    protocol: icmp
+    jump: ACCEPT
+
+- name: Block by default
+  iptables:
+    ip_version: ipv6
+    chain: "{{ item }}"
+    policy: DROP
+  with_items:
+    - INPUT
+    - FORWARD
+
+- name: Reboot persist IP6tables rule changes
+  command: /usr/libexec/iptables/ip6tables.init save
+
+- name: Enable IP6Tables service
+  systemd:
+    name: ip6tables
+    enabled: yes
+    state: started
