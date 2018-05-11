@@ -31,3 +31,4 @@ In your request, please mention the following details:
 * Whether you want it to reside on SSD or HDD
 
 An HDD project folder will reside in `/projects/<project_name>` while an SSD project folder will reside in `/scratch/projects/<project_name>`.
+You will need these paths when you start containers.
