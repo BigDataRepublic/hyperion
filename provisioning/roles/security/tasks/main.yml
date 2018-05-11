@@ -61,7 +61,6 @@
     chain: INPUT
     protocol: tcp
     destination: "{{ vpn.hyperion_ip }}" # this is the IP the API server listens on
-    in_interface: weave
     destination_port: 6443
     jump: ACCEPT
 
