@@ -1,5 +1,6 @@
 # Dashboard
 Kubernetes has a fantastic dashboard to monitor your Jobs and Pods.
+In the future, you will be able to use [hyperion-cli](https://github.com/BigDataRepublic/hyperion-cli) to access the dashboard, but for now you will have to access it manually.
 Before you can use the dashboard, you have to get your dashboard token.
 You'll only have to do this once.
 
