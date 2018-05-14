@@ -15,6 +15,7 @@ Both retrieving your token and viewing the dashboard require you to be connected
 
 1. Run `kubectl proxy` in your terminal
 1. In your browser, go to `http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/`
-1. Authenticate using your dashboard token
+1. Authenticate using the Token method and enter your dashboard token
+1. You will see some warnings. To remove them and use the dashboard, make sure to switch to the correct namespace in the dropdown menu on the left.
 
 You will only have access to resources in your own namespace.

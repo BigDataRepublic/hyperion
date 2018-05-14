@@ -34,17 +34,29 @@ The easiest way to push your image is through a public DockerHub account.
 However, you can only do this if your image is truly public, as anyone is able to read its contents.
 If your image is of a more private nature, you can push to BDR's AWS Docker Registry.
 
+### AWS Docker Registry
 To do this, you will first have create a new AWS Docker Repository.
 If you have AWS access you can do this yourself in AWS ECS.
 If you do not have AWS access you can request an account through Steven.
 
-When your AWS repository is created you should login to it by doing the following:
+To create your repository, you login to AWS and type "ECR" in the search field.
+You will right away see a page with all AWS repositories.
+Create a new repository with a meaningful name, it's good practice to include your user ID at the start of the repository name.
+Note the URL that AWS gives you, you will need it later.
+
+When your AWS repository is created you should login to it.
+If you don't have the AWS CLI tool yet, you can install it by doing `pip install awscli` and `aws configure` to enter your credentials.
+The credentials you need can be created within AWS as explained on [this documentation page](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
+
+After having installed AWS CLI, run the following command:
 
 ```
 aws ecr get-login --no-include-email --region eu-west-1
 ```
 and run the command that was given in the output of the console.
 For DockerHub, you can authenticate using `docker login`.
+
+If you have trouble creating an AWS Docker Registry you can request one of the administrators (hyperion@bigdatarepublic.nl) to create one for you and guide you through the setup process.
 
 Once you have a repository up and running, you can tag and push your Docker image like so:
 
@@ -58,41 +70,43 @@ In the future, this whole process will be automated through the [hyperion-cli](h
 
 ## Uploading data to the cluster
 Make sure to read [this guide](http://github.com/BigDataRepublic/hyperion/blob/master/user-docs/GettingDataOnCluster.md) on how to get data on the cluster.
-Make sure to remember the path where you store the data (either `/home/<user>/<project>` or `/home/<user>/scratch/<project>`).
+Also make sure to remember the path where you store the data (either `/home/<user>/<project>` or `/home/<user>/scratch/<project>`).
 
 ## Creating a Kubernetes deployment
-To submit jobs to Kubernetes, you will need to create a deployment file referring to e.g. the image to run, the required resources and the necessary data folders to mount.
+To submit jobs to Kubernetes, you will need to create a deployment file referring to the image to run, the required resources and the necessary data folders to mount.
 
 An example file is shown below, which you should save as `deployment.yaml`
 
 ```
 ---
-apiVersion: v1
+apiVersion: batch/v1
 kind: Job
 metadata:
-  name: awesome-project-trainer  # the name of your job
+  name: nvidia-test  # the name of your job
 spec:
   template:
     spec:
       volumes:
       - hostPath:
-          path: /home/sreitsma/scratch/awesome-project/data  # the folder you want to mount into the container
+          path: /home/sreitsma/test  # the folder you want to mount into the container
           type: Directory
-        name: data
+        name: test
       containers:
       - name: awesome-project-trainer  # give the image in your job a name, can be anything
-        image: 0123456789012.dkr.ecr.eu-west-1.amazonaws.com/awesome-project-trainer:latest  # the path to the image, can be hosted on DockerHub or on our AWS ECR repositories
+        image: nvidia/cuda  # the path to the image, can be hosted on DockerHub or on our AWS ECR repositories
+        command: ["nvidia-smi"]
         resources:
           limits:
             nvidia.com/gpu: 1  # request a single GPU
             memory: "4096Mi"  # the maximum amount of RAM your application can/will use
             cpu: "2"  # the maximum amount of CPU's your application can/will use
-          request:
+          requests:
             memory: "1024Mi"  # the expected amount of memory that you use
             cpu: "1"  # the expected amount of CPU that you use
         volumeMounts:
-        - mountPath: /data  # mount the host folder specified above to /data
-          name: data
+        - mountPath: /test  # mount the host folder specified above to /data
+          name: test
+      restartPolicy: Never
 ---
 ```
 
@@ -102,6 +116,11 @@ The documentation of Kubernetes Jobs can be found [here](https://kubernetes.io/d
 
 The job can be submitted by doing `kubectl apply -f deployment.yaml`.
 You can then monitor your application in the [dashboard](http://github.com/BigDataRepublic/hyperion/blob/master/user-docs/Dashboard.md) or via `kubectl describe jobs/awesome-project-trainer`.
+This latter command will give you a Pod name as well, which you can then query using `kubectl describe pods/awesome-project-trainer-xxxxx`
+
+To view the output of your application, it's easiest to use the Dashboard.
+Go to Jobs and search the Job that you just created and click the Logs button on the right.
+The Dashboard also allows you to easily delete Jobs that you want to have cancelled.
 
 ## Termination
 It is possible that your Job is terminated before it finishes, for example in the case of power loss.
