@@ -38,7 +38,8 @@ You can find the installer [here](https://openvpn.net/index.php/open-source/down
 3. Right-click the OpenVPN GUI in your task tray and click "Connect" to immediately get connected to the VPN.
 
 ### MacOS
-TODO
+1. Install [Tunnelblick](https://tunnelblick.net/)
+2. Open the `<username>.ovpn` file with Tunnelblick and connect.
 
 ### Linux
 1. `yum install openvpn` / `apt-get install openvpn`
