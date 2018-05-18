@@ -9,15 +9,17 @@ Before we start, it's useful to know some of the Kubernetes-related terminology:
 
 ## Creating a project
 The only way of running workloads on the Hyperion cluster is by submitting Docker images.
-To create a Docker image for your workload, you can use a recommended base image from TensorFlow, which includes TensorFlow and CUDA or you can use your own image if you have any custom needs.
+To create a Docker image for your workload, you can use one of the [standard recommended base images](BaseImages.md) or create your own.
 
-If you want to use the TensorFlow base image, you should create a Dockerfile in your project directory as follows:
+If you want to use e.g. the TensorFlow base image, you should create a Dockerfile in your project directory as follows:
 
 ```
 FROM tensorflow/tensorflow:latest-gpu
 
+COPY ./main.sh
 COPY ./model.py
-CMD ["python", "model.py"]
+
+CMD ["bash", "main.sh"]
 ```
 
 If you need other libraries (such as Keras or PyTorch) you can install them in this Dockerfile by adding a line `RUN pip install keras` or you can use a base image that includes your requirements.
@@ -69,7 +71,7 @@ We understand that this process is quite cumbersome right now.
 In the future, this whole process will be automated through the [hyperion-cli](https://github.com/BigDataRepublic/hyperion-cli).
 
 ## Uploading data to the cluster
-Make sure to read [this guide](http://github.com/BigDataRepublic/hyperion/blob/master/user-docs/GettingDataOnCluster.md) on how to get data on the cluster.
+Make sure to read [this guide](GettingDataOnCluster.md) on how to get data on the cluster.
 Also make sure to remember the path where you store the data (either `/home/<user>/<project>` or `/home/<user>/scratch/<project>`).
 
 ## Creating a Kubernetes deployment
@@ -98,8 +100,8 @@ spec:
         resources:
           limits:
             nvidia.com/gpu: 1  # request a single GPU
-            memory: "4096Mi"  # the maximum amount of RAM your application can/will use
-            cpu: "2"  # the maximum amount of CPU's your application can/will use
+            memory: "1536Mi"  # the maximum amount of RAM your application can/will use
+            cpu: "1"  # the maximum amount of CPU's your application can/will use
           requests:
             memory: "1024Mi"  # the expected amount of memory that you use
             cpu: "1"  # the expected amount of CPU that you use
@@ -110,12 +112,25 @@ spec:
 ---
 ```
 
-To understand the request and limit sections of this configuration a bit better, have a look at [this blogpost](http://www.noqcks.io/notes/2018/02/03/understanding-kubernetes-resources/).
+By default, you request 512 MB of memory and 1 CPU core.
+The maximum you can request is 24 GB of memory and 2 CPU cores.
+If you need to use more CPU cores, please ask for an increase in your personal limits by sending an email to hyperion@bigdatarepublic.nl.
+Note that the amount of CPU cores is not necessarily an integer.
+You can also request e.g. 1.5 CPU cores.
+To understand the request and limit sections a bit better, have a look at [this blogpost](http://www.noqcks.io/notes/2018/02/03/understanding-kubernetes-resources/).
+
+We recommend setting the requests section to the expected amount of memory you will use.
+To determine this, run your application locally and note down approximately how much memory your process is using.
+Remember to take some margin (+25%) in your application's memory request.
+A good range for the memory limit is your request memory + 25%.
+Note however, that you are only guaranteed the memory that is in your *request*.
+If you are using more than your request (but less than your limit) your Job will continue unless there is another Job that requires that memory, in which case your Job will be forcefully killed!
+For CPU, we recommend using a single core, unless you developed your application to use multithreading/multiprocessing.
 
 The documentation of Kubernetes Jobs can be found [here](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) if you need to create more advanced jobs.
 
 The job can be submitted by doing `kubectl apply -f deployment.yaml`.
-You can then monitor your application in the [dashboard](http://github.com/BigDataRepublic/hyperion/blob/master/user-docs/Dashboard.md) or via `kubectl describe jobs/awesome-project-trainer`.
+You can then monitor your application in the [dashboard](Dashboard.md) or via `kubectl describe jobs/awesome-project-trainer`.
 This latter command will give you a Pod name as well, which you can then query using `kubectl describe pods/awesome-project-trainer-xxxxx`
 
 To view the output of your application, it's easiest to use the Dashboard.

@@ -1,6 +1,6 @@
 # Getting data on the cluster
 To get data on the cluster you need to connect to the cluster using SFTP.
-Make sure you've [set up your SFTP connection](http://github.com/BigDataRepublic/hyperion/blob/master/user-docs/SetupEnvironment.md) and make sure you're connected to the VPN.
+Make sure you've [set up your SFTP connection](SetupEnvironment.md) and make sure you're connected to the VPN.
 Open an SFTP connection and make sure you can see directories like `.ssh` and `keys` in the right hand panel.
 
 ## Uploading and downloading data
