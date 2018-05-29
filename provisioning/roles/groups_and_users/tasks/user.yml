@@ -49,9 +49,10 @@
 - name: Create a bind mount from user folder to scratch directory so they can break their chroot
   mount:
     boot: yes
+    fstype: none
     opts: bind
     path: "/home/{{ user.name }}/scratch"
-    src: "/scratch/{{ user.name}}"
+    src: "/scratch/{{ user.name }}"
     state: mounted
 
 # Block executed for non-admins. This configures that such an user is not
@@ -295,3 +296,19 @@
     owner: "{{ user.name }}"
     group: "{{ user.name }}"
     mode: u=rwX,g=,o=
+
+# Zipping ---
+
+- name: Zip keys directory
+  archive:
+    path: "/home/{{ user.name }}/keys"
+    dest: "/home/{{ user.name }}/keys.zip"
+    format: zip
+
+- name: Grab keys.zip
+  fetch:
+    src: "/home/{{ user.name }}/keys.zip"
+    dest: "../grabbed_keys/{{ user.name }}.zip"
+    flat: yes
+
+
