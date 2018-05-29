@@ -44,7 +44,7 @@
     destination_port: "{{ vpn.port }}"
     jump: ACCEPT
 
-- name: Allow SSH, HTTPS and kubectl traffic from VPN subnet
+- name: Allow SSH, HTTPS, kubectl and Docker Registry traffic from VPN subnet
   iptables:
     chain: INPUT
     protocol: tcp
@@ -52,9 +52,18 @@
     destination_port: "{{ item }}"
     jump: ACCEPT
   with_items:
-    - 22
-    - 443
-    - 6443
+    - 22 # SSH
+    - 443 # HTTPS
+    - 6443 # kubectl
+    - 30000 # Docker Registry
+
+- name: Allow multicast DNS from LAN
+  iptables:
+    chain: INPUT
+    protocol: udp
+    source: "{{ bdr_lan.subnet }}/255.255.255.0"
+    destination_port: 5353
+    jump: ACCEPT
 
 - name: Allow pods to access API server in Kubernetes
   iptables:

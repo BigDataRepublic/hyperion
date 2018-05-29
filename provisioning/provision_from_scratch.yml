@@ -12,5 +12,6 @@
     - kubernetes
     - cron
     - docker-registry
+    - mdns
     - groups_and_users
     - security
