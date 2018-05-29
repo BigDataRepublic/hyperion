@@ -1,0 +1,98 @@
+---
+apiVersion: v1
+data:
+  tls.crt: "{{ docker_registry_server_cert }}"
+  tls.key: "{{ docker_registry_server_key }}"
+kind: Secret
+metadata:
+  name: docker-registry-pki
+  namespace: kube-system
+  labels:
+    app: docker-registry
+type: Opaque
+
+---
+apiVersion: v1
+data:
+  access_key_id: "{{ aws_s3_hyperion_access_key_id }}"
+  access_secret: "{{ aws_s3_hyperion_access_secret }}"
+kind: Secret
+metadata:
+  name: aws-s3-docker-registry-credentials
+  namespace: kube-system
+  labels:
+    app: docker-registry
+type: Opaque
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-registry
+  labels:
+    app: docker-registry
+  namespace: kube-system
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+     app: docker-registry
+  template:
+    metadata:
+      labels:
+        app: docker-registry
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        volumeMounts:
+          - name: cert-store
+            mountPath: /certs
+        env:
+          - name: REGISTRY_HTTP_TLS_CERTIFICATE
+            value: /certs/tls.crt
+          - name: REGISTRY_HTTP_TLS_KEY
+            value: /certs/tls.key
+          - name: REGISTRY_STORAGE
+            value: s3
+          - name: REGISTRY_STORAGE_S3_BUCKET
+            value: "{{ aws_s3_hyperion_bucket_name }}"
+          - name: REGISTRY_STORAGE_S3_REGION
+            value: "{{ aws_s3_hyperion_bucket_region }}"
+          - name: REGISTRY_STORAGE_S3_ACCESSKEY
+            valueFrom:
+              secretKeyRef:
+                name: aws-s3-docker-registry-credentials
+                key: access_key_id
+          - name: REGISTRY_STORAGE_S3_SECRETKEY
+            valueFrom:
+              secretKeyRef:
+                name: aws-s3-docker-registry-credentials
+                key: access_secret
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 5000
+      volumes:
+        - name: cert-store
+          secret:
+            secretName: docker-registry-pki
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docker-registry
+  name: docker-registry
+  namespace: kube-system
+spec:
+  ports:
+  - name: "5000"
+    port: 5000
+    targetPort: 5000
+    nodePort: 30000
+  selector:
+    app: docker-registry
+  type: NodePort

@@ -1,0 +1,5 @@
+---
+- hosts: gpu
+  become: yes
+  roles:
+    - docker-registry
