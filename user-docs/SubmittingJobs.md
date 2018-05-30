@@ -31,48 +31,31 @@ For local development, you can use this Dockerfile to test your project.
 Before submitting to Hyperion, make sure it works on your local machine, e.g. by running a single epoch on a subsample of your data.
 
 ## Pushing your Docker image
-Before Hyperion can run your Docker image you need to push it to a Docker Registry.
-The easiest way to push your image is through a public DockerHub account.
-However, you can only do this if your image is truly public, as anyone is able to read its contents.
-If your image is of a more private nature, you can push to BDR's AWS Docker Registry.
+Before Hyperion can run your Docker image you need to push it to our private Docker Registry.
 
-### AWS Docker Registry
-To do this, you will first have create a new AWS Docker Repository.
-If you have AWS access you can do this yourself in AWS ECS.
-If you do not have AWS access you can request an account through Steven.
+### Docker Registry
+To use the Docker Registry, you will need to be connected to the VPN and you will need to have setup the root certificate, as explained in the [previous sections](SetupEnvironment.md).
 
-To create your repository, you login to AWS and type "ECR" in the search field.
-You will right away see a page with all AWS repositories.
-Create a new repository with a meaningful name, it's good practice to include your user ID at the start of the repository name.
-Note the URL that AWS gives you, you will need it later.
-
-When your AWS repository is created you should login to it.
-If you don't have the AWS CLI tool yet, you can install it by doing `pip install awscli` and `aws configure` to enter your credentials.
-The credentials you need can be created within AWS as explained on [this documentation page](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
-
-After having installed AWS CLI, run the following command:
+If you have setup everything correctly, you can tag and push your Docker image like so:
 
 ```
-aws ecr get-login --no-include-email --region eu-west-1
-```
-and run the command that was given in the output of the console.
-For DockerHub, you can authenticate using `docker login`.
-
-If you have trouble creating an AWS Docker Registry you can request one of the administrators (hyperion@bigdatarepublic.nl) to create one for you and guide you through the setup process.
-
-Once you have a repository up and running, you can tag and push your Docker image like so:
-
-```
-docker tag <image_id_or_local_name> 0123456789012.dkr.ecr.eu-west-1.amazonaws.com/awesome-project-trainer:latest
-docker push 0123456789012.dkr.ecr.eu-west-1.amazonaws.com/awesome-project-trainer:latest
+docker tag <image_id_or_local_name> 10.8.0.1:30000/<user>/<image_name>:<image_tag>
+docker push 10.8.0.1:30000/<user>/<image_name>:<image_tag>
 ```
 
-We understand that this process is quite cumbersome right now.
-In the future, this whole process will be automated through the [hyperion-cli](https://github.com/BigDataRepublic/hyperion-cli).
+You always need the `10.8.0.1:30000` prefix, as that refers to the Docker Registry on the Hyperion machine.
+For `<user>` we recommend using your Linux username, which are your initials and last name, in lowercase.
+For `<image_name>` you can choose anything you want, such as the project name.
+For `<image_tag>` you can choose a versioning scheme, you can use "latest", or leave it out entirely.
+
+Please note that everyone has access to all images in the Docker Registry, as long as you are connected to the VPN.
+In the future, this whole process will be more automated through the [hyperion-cli](https://github.com/BigDataRepublic/hyperion-cli).
+
+Images that have not been used for 30 days will be removed automatically from the Registry to save storage space.
 
 ## Uploading data to the cluster
 Make sure to read [this guide](GettingDataOnCluster.md) on how to get data on the cluster.
-Also make sure to remember the path where you store the data (either `/home/<user>/<project>` or `/home/<user>/scratch/<project>`).
+Also make sure to remember the path where you store the data (either something like `/home/<user>/<project>` or `/home/<user>/scratch/<project>`).
 
 ## Creating a Kubernetes deployment
 To submit jobs to Kubernetes, you will need to create a deployment file referring to the image to run, the required resources and the necessary data folders to mount.
@@ -84,19 +67,19 @@ An example file is shown below, which you should save as `deployment.yaml`
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: nvidia-test  # the name of your job
+  name: test-project  # the name of your job
 spec:
   template:
     spec:
       volumes:
       - hostPath:
-          path: /home/sreitsma/test  # the folder you want to mount into the container
+          path: /home/sreitsma  # the folder you want to mount into the container
           type: Directory
-        name: test
+        name: host
       containers:
-      - name: awesome-project-trainer  # give the image in your job a name, can be anything
-        image: nvidia/cuda  # the path to the image, can be hosted on DockerHub or on our AWS ECR repositories
-        command: ["nvidia-smi"]
+      - name: test-project  # give the image in your job a name, can be anything
+        image: 10.8.0.1:30000/<user>/<image_name>:latest  # the path to the image
+        command: ["bash run_model.sh"]
         resources:
           limits:
             nvidia.com/gpu: 1  # request a single GPU
@@ -106,8 +89,8 @@ spec:
             memory: "1024Mi"  # the expected amount of memory that you use
             cpu: "1"  # the expected amount of CPU that you use
         volumeMounts:
-        - mountPath: /test  # mount the host folder specified above to /data
-          name: test
+        - mountPath: /host  # mount the host folder specified above to /data
+          name: host
       restartPolicy: Never
 ---
 ```
