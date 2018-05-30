@@ -1,0 +1,19 @@
+- name: Install nss-mdns and avahi
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - avahi
+    - nss-mdns
+
+- name: Start and enable the avahi daemon
+  systemd:
+    name: avahi-daemon
+    enabled: yes
+    state: restarted
+
+- name: Add configuration for mdns
+  lineinfile:
+    path: /etc/nsswitch.conf
+    line: "hosts: files mdns_minimal [NOTFOUND=return] dns mdns"
+    state: present

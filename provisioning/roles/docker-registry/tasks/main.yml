@@ -1,0 +1,12 @@
+- name: Copy deployment configuration to host
+  template:
+    src: deployment.yml
+    dest: /tmp/docker-registry-deployment.yml
+
+- name: Deploy a Docker Registry pod
+  command: "kubectl apply -f /tmp/docker-registry-deployment.yml"
+
+- name: Remove deployment configuration
+  file:
+    path: /tmp/docker-registry-deployment.yml
+    state: absent

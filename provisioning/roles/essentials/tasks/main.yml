@@ -6,4 +6,6 @@
     - nano
     - pciutils
     - htop
-
+    - telnet
+    - wget
+    - screen

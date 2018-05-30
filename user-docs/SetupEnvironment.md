@@ -24,6 +24,44 @@ From the administrators, you will receive an encrypted .zip file with access key
 
 In this documentation page, we will show you how to setup access to all of these services.
 
+## Setting up the root certificate
+To make sure all traffic to Hyperion's services is securely encrypted, we use TLS for most communication protocols.
+Since we self-signed our certificate, you need to install that certificate on your local machine in order for it to trust the server.
+To install the root certificate, follow the guides below.
+
+### Windows
+In the .zip file you received you will find a ca.crt file.
+Right-click it and select "Install certificate".
+When prompted, select the following options:
+
+- Store location: local machine
+- Place all certificates in the following store: selected
+  - Click Browser and select **Trusted Root Certificate Authorities**.
+
+Click Finish.
+
+Make sure to restart Docker after installing the certificate to make sure it's known in the Docker daemon as well, otherwise you won't be able to push images.
+
+### MacOS
+Double-click on the ca.crt file that you can find in the .zip file you received.
+Keychain Access will open with the Add Certificate window.
+When asked which keychain to add the certificate to, select the System keychain from the pull-down window.
+You will be prompted for your administrator password.
+
+The next window asks whether or not you want the computer to trust certificates from this CA in the future.
+Here you must select the trust settings for this CA.
+Expand the Trust section and choose "Always Trust" for both "X.509 Basic Policy" and the "When using this certificate" pull-down.
+Finally, click the "Always Trust" button.
+Provide the administrator password again and the System keychain will be updated.
+
+Make sure to restart Docker after installing the certificate to make sure it's known in the Docker daemon as well, otherwise you won't be able to push images.
+
+### Linux
+Copy the `ca.crt` file that you can find in the .zip file you received to `/etc/docker/certs.d/10.8.0.1:30000/ca.crt` and to your trusted CA store (`/etc/pki/ca-trust/source/anchors/hyperion.crt` on CentOS, `/usr/local/share/ca-certificates` on Ubuntu).
+
+You need to reload your certificates (`sudo update-ca-trust extract` for CentOS, `sudo update-ca-certificates` for Ubuntu).
+Make sure to restart Docker after installing the certificate to make sure it's known in the Docker daemon as well, otherwise you won't be able to push images.
+
 ## Setting up the VPN
 We run an OpenVPN server on Hyperion.
 You need to connect to this VPN to access any of Hyperion's services, even if you're at the office!

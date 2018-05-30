@@ -53,3 +53,10 @@
       state: present
       create: yes
   when: ca_exists.stat.exists == False
+
+- name: Copy CA certificate to trusted store
+  copy:
+    remote_src: yes
+    src: "{{ ca.path }}/{{ root_cert_filename }}"
+    dest: "/etc/pki/ca-trust/source/anchors/hyperion.crt"
+  notify: Reload trusted certificates

@@ -1,0 +1,2 @@
+- name: Reload trusted certificates
+  command: "update-ca-trust extract"
