@@ -36,7 +36,7 @@ When prompted, select the following options:
 
 - Store location: local machine
 - Place all certificates in the following store: selected
-- Click Browser and select **Trusted Root Certificate Authorities**.
+  - Click Browser and select **Trusted Root Certificate Authorities**.
 
 Click Finish.
 
@@ -57,8 +57,9 @@ Provide the administrator password again and the System keychain will be updated
 Make sure to restart Docker after installing the certificate to make sure it's known in the Docker daemon as well, otherwise you won't be able to push images.
 
 ### Linux
-Copy the ca.crt file that you can find in the .zip file you received to `/etc/docker/certs.d/10.8.0.1:30000/ca.crt` on your Docker host or add the ca.crt file to your trusted CA store (`/etc/pki/ca-trust/source/anchors/hyperion.crt` on CentOS, `/usr/local/share/ca-certificates` on Ubuntu).
-When you do the latter, make sure to reload your certificates (`sudo update-ca-trust extract` for CentOS, `sudo update-ca-certificates` for Ubuntu).
+Copy the `ca.crt` file that you can find in the .zip file you received to `/etc/docker/certs.d/10.8.0.1:30000/ca.crt` and to your trusted CA store (`/etc/pki/ca-trust/source/anchors/hyperion.crt` on CentOS, `/usr/local/share/ca-certificates` on Ubuntu).
+
+You need to reload your certificates (`sudo update-ca-trust extract` for CentOS, `sudo update-ca-certificates` for Ubuntu).
 Make sure to restart Docker after installing the certificate to make sure it's known in the Docker daemon as well, otherwise you won't be able to push images.
 
 ## Setting up the VPN
