@@ -72,7 +72,7 @@ The .ovpn file contains your VPN credentials so make sure to store it securely.
 ### Windows
 1. To connect to the VPN on Windows, first install OpenVPN.
 You can find the installer [here](https://openvpn.net/index.php/open-source/downloads.html).
-1. In the .zip file you received from the Hyperion administrators, you will find a .ovpn file. Extract it and place it in `C:\Users\<user>\OpenVPN\config\hyperion\<user>.ovpn`. If these directories do not yet exist, you can create them.
+1. In the .zip file you received from the Hyperion administrators, you will find a .ovpn file. Extract it and place it in `C:\Users\<user>\OpenVPN\config\hyperion\<username>.ovpn`. If these directories do not yet exist, you can create them.
 3. Right-click the OpenVPN GUI in your task tray and click "Connect" to immediately get connected to the VPN.
 
 ### MacOS
@@ -81,7 +81,7 @@ You can find the installer [here](https://openvpn.net/index.php/open-source/down
 
 ### Linux
 1. `yum install openvpn` / `apt-get install openvpn`
-1. `openvpn --config client.ovpn`
+1. `openvpn --config <username>.ovpn`
 
 
 ## Setting up SFTP for file transfer
