@@ -1,0 +1,10 @@
+- name: Install apcupsd
+  yum:
+    name: apcupsd
+    state: latest
+
+- name: Configure apcupsd
+  copy:
+    src: "apcupsd.conf"
+    dest: "/etc/apcupsd/apcupsd.conf"
+  notify: restart and enable apcupsd
