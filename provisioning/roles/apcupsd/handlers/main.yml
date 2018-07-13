@@ -1,0 +1,5 @@
+- name: restart and enable apcupsd
+  systemd:
+    name: apcupsd
+    enabled: yes
+    state: restarted
