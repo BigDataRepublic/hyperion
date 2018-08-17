@@ -1,0 +1,16 @@
+# This role allows a user account to access services through kubectl proxy
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: kube-system
+  name: {{ user.name }}-kubectl-proxy-role
+rules:
+  - apiGroups: [""]
+    resources:
+      - services
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources:
+      - services/proxy
+    verbs: ["get", "list", "watch", "create"]
