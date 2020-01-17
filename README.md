@@ -55,3 +55,7 @@ In short, before you can start provisioning, you need someone to give you the fo
 1. Membership to the `administrators` Linux group. Other administrators can facilitate this.
 
 Before being able to kick-off the provisioning scripts, it is assumed you have done everything mentioned in Preprocessing.md.
+
+Refreshing kubelet certificates
+--------
+https://github.com/kubernetes/kubeadm/issues/581#issuecomment-421477139
