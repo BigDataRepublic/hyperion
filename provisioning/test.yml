@@ -1,0 +1,30 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nvidia-test  # the name of your job
+spec:
+  template:
+    spec:
+      volumes:
+      - hostPath:
+          path: /home/sreitsma  # the folder you want to mount into the container
+          type: Directory
+        name: test
+      containers:
+      - name: awesome-project-trainer  # give the image in your job a name, can be anything
+        image: 10.8.0.1:30000/test  # the path to the image, can be hosted on DockerHub or on our AWS ECR repositories
+        command: ["ls"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1  # request a single GPU
+            memory: "1536Mi"  # the maximum amount of RAM your application can/will use
+            cpu: "1"  # the maximum amount of CPU's your application can/will use
+          requests:
+            memory: "1024Mi"  # the expected amount of memory that you use
+            cpu: "1"  # the expected amount of CPU that you use
+        volumeMounts:
+        - mountPath: /test  # mount the host folder specified above to /data
+          name: test
+      restartPolicy: Never
+---
