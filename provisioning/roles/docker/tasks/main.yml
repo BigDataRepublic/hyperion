@@ -10,55 +10,55 @@
      value: 1
      state: present
 
-- name: Add docker repository
-  yum_repository:
-    name: docker-ce-stable
+- name: Add docker apt key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
     state: present
-    description: Docker CE Stable - $basearch
-    baseurl: "https://download.docker.com/linux/centos/7/$basearch/stable"
-    enabled: 1
-    gpgcheck: 1
-    repo_gpgcheck: 1
-    gpgkey:
-      - "https://download.docker.com/linux/centos/gpg"
+
+- name: Add docker repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Apt cache policy
+  command: apt-cache policy docker-ce
+
+- name: apt cache update
+  apt:
+    update_cache: yes
 
 - name: Install Docker prerequisites
-  yum:
+  apt:
     name: "{{ item }}"
     state: latest
   with_items:
-    - device-mapper-persistent-data
-    - lvm2
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
 
 # TODO: docker-ce 18 is installed by default somehow. Should try to fix this.
 - name: Install Docker
-  # Note: as of writing, latest supported Docker version by Kubernetes is 17.03
-  # Note: we use a command instead of the yum module since we need to set additional options not supported by Ansible
-  command: yum install -y --setopt=obsoletes=0 docker-ce-17.03.2.ce-1.el7.centos.x86_64
-
-
-- name: Add nvidia-docker repositories
-  yum_repository:
-    name: "{{ item }}"
+  apt:
+    name: docker-ce
     state: present
-    description: "{{ item }}"
-    baseurl: "https://nvidia.github.io/{{ item }}/centos7/$basearch"
-    enabled: 1
-    gpgcheck: 0
-    repo_gpgcheck: 1
-    gpgkey:
-      - "https://nvidia.github.io/{{ item }}/gpgkey"
-  with_items:
-    - libnvidia-container
-    - nvidia-container-runtime
-    - nvidia-docker
+
+- name: Add nvidia-docker apt key
+  apt_key:
+    url: https://nvidia.github.io/nvidia-docker/gpgkey
+    state: present
+
+- name: Add nvidia-docker repository
+  command: curl -s -L https://nvidia.github.io/nvidia-docker/ubuntu20.04.3/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+- name: apt cache update
+  apt:
+    update_cache: yes
 
 - name: Install nvidia-docker
-  yum:
-    name: "{{ item }}"
-  with_items:
-    - nvidia-container-runtime-2.0.0-1.docker17.03.2.x86_64
-    - nvidia-docker2-2.0.3-1.docker17.03.2.ce.noarch
+  apt:
+    name: nvidia-docker2
+    state: present
 
 - name: Create docker.d folder
   file:

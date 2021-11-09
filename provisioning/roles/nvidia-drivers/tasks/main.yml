@@ -1,12 +1,11 @@
 - name: Install devel packages
-  yum:
+  apt:
     name: "{{ item }}"
     state: latest
   with_items:
-    - "@Development Tools"
-    - kernel-devel
-    - kernel-headers
-    - dkms
+    - build-essential
+    - libglvnd-dev
+    - pkg-config
 
 - name: Blacklist nouveau
   blockinfile:

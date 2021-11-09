@@ -1,5 +1,5 @@
 - name: Install essential packages
-  yum:
+  apt:
     name: "{{ item }}"
     state: latest
   with_items:

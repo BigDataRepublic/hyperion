@@ -54,9 +54,14 @@
       create: yes
   when: ca_exists.stat.exists == False
 
+- name: Ensures /etc/pki/ca-trust/source/anchors dir exists
+  file:
+    path: /etc/pki/ca-trust/source/anchors
+    state: directory
+
 - name: Copy CA certificate to trusted store
   copy:
     remote_src: yes
-    src: "{{ ca.path }}/{{ root_cert_filename }}"
+    src: "{{ ca.path }}/{{ ca.root_cert_filename }}"
     dest: "/etc/pki/ca-trust/source/anchors/hyperion.crt"
   notify: Reload trusted certificates

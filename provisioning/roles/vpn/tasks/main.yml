@@ -1,10 +1,8 @@
 ---
-# Requires EPEL-release repo
 - name: Install OpenVPN
-  yum:
-    name: openvpn-2.4.5
+  apt:
+    name: openvpn
     state: present
-    allow_downgrade: true
 
 - name: Start OpenVPN
   become: true
@@ -32,7 +30,7 @@
     file:
       path: "/etc/openvpn/server/{{ vpn.ta_key_filename }}"
       owner: openvpn
-      mode: u=rw,g=,o=
+      mode: "u=rw,g=,o="
   when: has_ta_key.stat.exists == False
 
 - name: Check if openvpn server certificate exists
@@ -53,11 +51,17 @@
       -out /etc/openvpn/server/openvpn.csr
       -config /etc/openvpn/server/openvpn_server_csr.conf
 
+  - name: Add openvpn user
+    user:
+      name: openvpn
+      uid: 1003
+      group: root
+
   - name: Set VPN server private key permissions
     file:
       path: "/etc/openvpn/server/{{ vpn.server_private_key_filename }}"
       owner: openvpn
-      mode: u=rw,g=,o=
+      mode: "u=rw,g=,o="
 
   - name: Sign VPN server CSR
     command: >
