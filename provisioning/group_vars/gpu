@@ -20,5 +20,5 @@ ca:
   crl_filename: ca.crl
 
 kubernetes:
-  version: "1.10"
-  patch_version: 2
+  version: "1.22"
+  patch_version: 3

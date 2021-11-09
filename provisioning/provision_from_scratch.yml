@@ -2,13 +2,13 @@
 - hosts: gpu
   become: yes
   roles:
-    - repositories
     - update
     - essentials
     - ca
     - vpn
     - nvidia-drivers
     - docker
+    - microk8s
     - kubernetes
     - cron
     - docker-registry

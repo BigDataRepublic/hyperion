@@ -7,29 +7,49 @@
     - libglvnd-dev
     - pkg-config
 
-- name: Blacklist nouveau
-  blockinfile:
-    dest: /etc/modprobe.d/blacklist.conf
-    create: yes
-    block: |
-      blacklist nouveau
-      blacklist lbm-nouveau
-      options nouveau modeset=0
-      alias nouveau off
-      alias lbm-nouveau off
-  notify: Recreate initramfs and reboot
+#- name: Blacklist nouveau
+#  blockinfile:
+#    dest: /etc/modprobe.d/blacklist.conf
+#    create: yes
+#    block: |
+#      blacklist nouveau
+#      blacklist lbm-nouveau
+#      options nouveau modeset=0
+#      alias nouveau off
+#      alias lbm-nouveau off
+#  notify: Recreate initramfs and reboot
+#
+#- meta: flush_handlers
+#
+#- name: Download NVIDIA driver
+#  get_url:
+#    url: "http://us.download.nvidia.com/XFree86/Linux-x86_64/{{ nvidia_driver_version }}/NVIDIA-Linux-x86_64-{{ nvidia_driver_version }}.run"
+#    dest: /tmp/nvidia-driver.run
+#
+#- name: Install NVIDIA driver
+#  command: sh /tmp/nvidia-driver.run --silent
+#
+#- name: Remove installation file
+#  file:
+#    path: /tmp/nvidia-driver.run
+#    state: absent
+- name: install nvidia repository
+  apt_repository:
+    filename: cuda
+    repo: deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /
+    state: present
+    update_cache: no
+  notify: remove cuda apt repositories
 
-- meta: flush_handlers
+- name: add nvidia apt key
+  apt_key:
+    url: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+    state: present
 
-- name: Download NVIDIA driver
-  get_url:
-    url: "http://us.download.nvidia.com/XFree86/Linux-x86_64/{{ nvidia_driver_version }}/NVIDIA-Linux-x86_64-{{ nvidia_driver_version }}.run"
-    dest: /tmp/nvidia-driver.run
-
-- name: Install NVIDIA driver
-  command: sh /tmp/nvidia-driver.run --silent
-
-- name: Remove installation file
-  file:
-    path: /tmp/nvidia-driver.run
-    state: absent
+- name: install nvidia drivers
+  apt:
+    name:
+      - "nvidia-headless-{{ nvidia_driver_version }}"
+      - "nvidia-utils-{{ nvidia_driver_version }}"
+    state: present
+    update_cache: true

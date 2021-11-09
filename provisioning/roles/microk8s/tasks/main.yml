@@ -1,0 +1,21 @@
+- name: Install microk8s
+  snap:
+    name: microk8s
+    channel: "{{ microk8s_version }}"
+
+- name: Enable own CA
+  command: microk8s refresh-certs "{{ ca.path }}"
+
+- name: Enable addons
+  command: microk8s enable gpu storage dns dashboard rbac
+
+- name: Add csr conf
+  copy:
+    src: csr.conf.template
+    dest: "/var/snap/microk8s/current/certs/csr.conf.template"
+
+- name: Stop microk8s
+  command: microk8s stop
+
+- name: Start microk8s
+  command: microk8s start

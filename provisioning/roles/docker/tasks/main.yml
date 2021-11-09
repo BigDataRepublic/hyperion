@@ -1,3 +1,8 @@
+- name: Ensure br_netfilter is enabled.
+  modprobe:
+    name: br_netfilter
+    state: present
+
 - name: Setup bridge nf iptables call
   sysctl:
     name: net.bridge.bridge-nf-call-iptables
@@ -43,22 +48,22 @@
     name: docker-ce
     state: present
 
-- name: Add nvidia-docker apt key
+- name: add nvidia docker apt key
   apt_key:
     url: https://nvidia.github.io/nvidia-docker/gpgkey
     state: present
 
-- name: Add nvidia-docker repository
-  command: curl -s -L https://nvidia.github.io/nvidia-docker/ubuntu20.04.3/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+- name: add nvidia docker apt repository
+  get_url:
+    url: "https://nvidia.github.io/nvidia-docker/ubuntu20.04/nvidia-docker.list"
+    dest: /etc/apt/sources.list.d/nvidia-docker.list
+  notify: remove nvidia docker apt repository
 
-- name: apt cache update
-  apt:
-    update_cache: yes
-
-- name: Install nvidia-docker
+- name: install nvidia-docker2
   apt:
     name: nvidia-docker2
     state: present
+    update_cache: true
 
 - name: Create docker.d folder
   file:

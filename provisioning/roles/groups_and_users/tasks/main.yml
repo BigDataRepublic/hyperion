@@ -1,9 +1,12 @@
 ---
+#- name: Create kubectl alias
+#  command: alias kubectl="microk8s kubectl"
+
 - name: Create groups
   group:
     name: "{{ item }}"
     state: present
-  with_items: " {{ linux_groups }}"
+  with_items: " {{ linux_groups }} "
 
 - name: Allow administrators to sudo without password (for Ansible provisioning)
   lineinfile:

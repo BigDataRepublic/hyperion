@@ -1,2 +1,16 @@
 - name: Recreate initramfs and reboot
   import_tasks: recreate_initramfs_and_reboot.yml
+
+- name: remove cuda apt repositories
+  apt_repository:
+    filename: cuda
+    repo: deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /
+    state: absent
+  environment:
+    http_proxy: "{{ ci_proxy_url }}"
+    https_proxy: "{{ ci_proxy_url }}"
+
+- name: remove nvidia docker apt repository
+  file:
+    path: /etc/apt/sources.list.d/nvidia-docker.list
+    state: absent
