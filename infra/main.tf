@@ -8,7 +8,7 @@ data "google_project" "project" {
 }
 
 module "vpn" {
-  source = "./vpn"
-  project_id = data.google_project.project.id
-  shared_secret = var.shared_secret
+  source     = "./vpn"
+
+  client_ovpn = var.client_ovpn
 }

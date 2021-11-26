@@ -3,8 +3,9 @@ variable "project" {
   default     = "playground-bart"
 }
 
-
-variable "shared_secret" {
-  description = "IKE pre-shared secret"
+variable "client_ovpn" {
+  description = "client.ovpn file contents"
   type        = string
+  sensitive   = true
+  default     = null
 }

@@ -1,0 +1,31 @@
+#cloud-config
+
+packages:
+  - docker.io
+
+# create the docker group
+groups:
+  - docker
+
+users:
+  - name: ubuntu
+    groups: docker
+    home: /home/ubuntu
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+write_files:
+  - path: /vpn/client.ovpn
+    content: |
+      ${client_ovpn}
+  - path: /docker-compose.yml
+    content: |
+      ${docker_compose}
+
+runcmd:
+  - sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - sudo chmod +x /usr/local/bin/docker-compose
+  - cd /
+  - /usr/local/bin/docker-compose up -d
+
+final_message: "The system is finally up, after $UPTIME seconds"

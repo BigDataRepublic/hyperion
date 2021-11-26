@@ -24,7 +24,12 @@ jobs:
       - name: Terraform plan
         id: plan
         run: |
-          terraform plan -var="shared_secret=${{ secrets.IKE_PRESHARED_KEY }}" -out=tfplan
+          terraform plan \
+            -var="client_ovpn=${{ secrets.CLIENT_OVPN }}" \
+            -var="client_crt=${{ secrets.CLIENT_CRT }}" \
+            -var="client_key=${{ secrets.CLIENT_KEY }}" \
+            -var="vpn_ca_crt=${{ secrets.VPN_CA_CRT }}" \
+            -out=tfplan
 
 #      - name: Terraform apply
 #        run: |

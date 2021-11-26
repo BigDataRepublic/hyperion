@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+  vpn:
+    image: derkades/ovpn-client
+    ports: # forward ports for other services here
+      - 22
+      - 6443
+    volumes: [ '/vpn/client.ovpn:/client.ovpn' ]
+    dns: [ '1.1.1.1', '8.8.8.8' ]
+    cap_add: [ 'net_admin' ]
+    devices: [ '/dev/net/tun:/dev/net/tun' ]
+    environment:
+      LOCAL_NETWORK: 10.8.0.0/16
+
+  sftp:
+    image: tecnativa/tcp-proxy
+    environment:
+      LISTEN: ":22"
+      TALK: "10.8.0.1:22"
+
+  kubernetes:
+    image: tecnativa/tcp-proxy
+    environment:
+      LISTEN: ":6443"
+      TALK: "10.8.0.1:6443"
