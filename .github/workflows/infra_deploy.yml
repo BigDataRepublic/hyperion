@@ -24,12 +24,7 @@ jobs:
       - name: Terraform plan
         id: plan
         run: |
-          terraform plan \
-            -var="client_ovpn=${{ secrets.CLIENT_OVPN }}" \
-            -var="client_crt=${{ secrets.CLIENT_CRT }}" \
-            -var="client_key=${{ secrets.CLIENT_KEY }}" \
-            -var="vpn_ca_crt=${{ secrets.VPN_CA_CRT }}" \
-            -out=tfplan
+          terraform plan -var="client_ovpn=${{ secrets.CLIENT_OVPN }}" -out=tfplan
 
 #      - name: Terraform apply
 #        run: |

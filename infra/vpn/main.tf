@@ -137,6 +137,21 @@ resource "google_compute_region_backend_service" "proxy" {
   }
 }
 
+// Cloud IAP
+data "google_iam_policy" "admin" {
+  binding {
+    role    = "roles/iap.tunnelResourceAccessor"
+    members = [
+      "group:all@bigdatarepublic.nl",
+    ]
+  }
+}
+
+resource "google_iap_tunnel_iam_policy" "policy" {
+  project     = var.project
+  policy_data = data.google_iam_policy.admin.policy_data
+}
+
 // Firewall rules
 // Allow all access from health check ranges
 resource "google_compute_firewall" "health_checks" {
