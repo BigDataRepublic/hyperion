@@ -4,26 +4,26 @@
     dest: /etc/ssh/sshd_config
     owner: root
     group: root
-    mode: u=rw,g=,o=
+    mode: "u=rw,g=,o="
   notify: Restart sshd
 
 # CentOS uses firewalld by default. We use Iptables
 # because we're more familiar with that tool.
-- name: Install IPTables
-  yum:
-    name: iptables-services-1.4.21
-
-- name: Enable IPTables service
-  systemd:
-    name: iptables
-    enabled: yes
-    state: started
-
-- name: Stop firewalld
-  service:
-    name: firewalld
-    state: stopped
-    enabled: no
+#- name: Install IPTables
+#  apt:
+#    name: iptables-services-1.4.21
+#
+#- name: Enable IPTables service
+#  systemd:
+#    name: iptables
+#    enabled: yes
+#    state: started
+#
+#- name: Stop firewalld
+#  service:
+#    name: firewalld
+#    state: stopped
+#    enabled: no
 
 - name: Allow established incoming connections
   iptables:
@@ -54,7 +54,7 @@
   with_items:
     - 22 # SSH
     - 443 # HTTPS
-    - 6443 # kubectl
+    - 16443 # kubectl
     - 30000 # Docker Registry
 
 - name: Allow multicast DNS from LAN
@@ -70,7 +70,7 @@
     chain: INPUT
     protocol: tcp
     destination: "{{ vpn.hyperion_ip }}" # this is the IP the API server listens on
-    destination_port: 6443
+    destination_port: 16443
     jump: ACCEPT
 
 - name: Allow port range for LAN
@@ -86,10 +86,13 @@
     chain: INPUT
     policy: DROP
 
-- name: Reboot persist IPtables rule changes
-  command: /usr/libexec/iptables/iptables.init save
+- name: Create directory
+  file:
+    path: /etc/iptables
+    state: directory
 
-#As the tunnel has not ipv6 support enabled, we block almost all ipv6
+- name: Save ipv4 rules
+  shell: iptables-save > /etc/iptables/rules.v4
 
 - name: Allow ipv6 icmp
   iptables:
@@ -107,11 +110,13 @@
     - INPUT
     - FORWARD
 
-- name: Reboot persist IP6tables rule changes
-  command: /usr/libexec/iptables/ip6tables.init save
+#As the tunnel has not ipv6 support enabled, we block almost all ipv6
 
-- name: Enable IP6Tables service
-  systemd:
-    name: ip6tables
-    enabled: yes
-    state: started
+- name: Save ipv6 rules
+  shell: ip6tables-save > /etc/iptables/rules.v6
+#
+- name: Install iptables-persistent
+  apt:
+    name: iptables-persistent
+    state: present
+    update_cache: true

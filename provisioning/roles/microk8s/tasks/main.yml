@@ -2,6 +2,7 @@
   snap:
     name: microk8s
     channel: "{{ microk8s_version }}"
+    classic: yes
 
 - name: Enable own CA
   command: microk8s refresh-certs "{{ ca.path }}"
